@@ -10,15 +10,15 @@ object StorageUtils {
     private const val APP_FOLDER = "QAApp"
 
     fun getTaskFolder(context: Context, taskId: String): File {
-        val root = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES) 
-            ?: File(context.filesDir, Environment.DIRECTORY_PICTURES)
-        
-        // We use app-specific storage for simplicity and reliability across Android versions,
-        // but we can map to public storage if needed.
+        // Moving storage "above" Documents to the root of Internal Storage
+        // Path: /storage/emulated/0/QAApp/Task/{TaskID}/
+        val root = Environment.getExternalStorageDirectory()
         val appDir = File(root, APP_FOLDER)
         val taskDir = File(appDir, "Task/$taskId")
         
         if (!taskDir.exists()) {
+            // Note: Creating directories at the root requires broad storage permissions 
+            // or specific device configurations on Android 13+.
             taskDir.mkdirs()
         }
         return taskDir
