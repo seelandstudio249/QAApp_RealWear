@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.*
@@ -33,6 +34,13 @@ fun CaptureScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraExecutor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
+    
+    // Properly shut down the executor when this composable is disposed
+    DisposableEffect(Unit) {
+        onDispose {
+            cameraExecutor.shutdown()
+        }
+    }
     
     val previewView = remember { PreviewView(context) }
     val imageCapture: ImageCapture = remember { ImageCapture.Builder().build() }
@@ -105,7 +113,8 @@ fun CaptureScreen(
                 label = "CAPTURE",
                 onClick = {
                     takePhoto(context, taskId, imageCapture, cameraExecutor) {
-                        onBack()
+                        // Stay on this screen and show feedback
+                        Toast.makeText(context, "Photo Saved", Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier
@@ -129,7 +138,6 @@ private fun takePhoto(
     onPhotoSaved: (Uri) -> Unit
 ) {
     val photoFile = StorageUtils.getOutputOptions(context, taskId)
-
     val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
     imageCapture.takePicture(
@@ -143,7 +151,11 @@ private fun takePhoto(
             override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                 val savedUri = Uri.fromFile(photoFile)
                 Log.d("CaptureScreen", "Photo capture succeeded: $savedUri")
-                onPhotoSaved(savedUri)
+                
+                // DISPATCH BACK TO MAIN THREAD for navigation/UI updates
+                ContextCompat.getMainExecutor(context).execute {
+                    onPhotoSaved(savedUri)
+                }
             }
         }
     )
