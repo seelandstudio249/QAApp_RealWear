@@ -1,5 +1,20 @@
 package com.studio249.qaapp_realwear.ui.screens
 
+import android.content.Context
+import android.util.Log
+import android.util.Rational
+import android.view.Surface
+import androidx.core.content.ContextCompat
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
+import androidx.camera.core.UseCaseGroup
+import androidx.camera.core.ViewPort
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,15 +25,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.tooling.preview.Preview as ComposablePreview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import coil.compose.AsyncImage
 import com.studio249.qaapp_realwear.data.SeedDataRepository
 import com.studio249.qaapp_realwear.model.Step
@@ -27,6 +47,10 @@ import com.studio249.qaapp_realwear.ui.components.RealWearBottomBar
 import com.studio249.qaapp_realwear.ui.components.RealWearButton
 import com.studio249.qaapp_realwear.ui.components.RealWearTopBar
 import com.studio249.qaapp_realwear.ui.theme.*
+import com.studio249.qaapp_realwear.utils.StorageUtils
+import java.io.File
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 enum class ProcedurePattern {
     Steps, Capture, Review
@@ -38,7 +62,9 @@ fun ProceduresScreen(
     onComplete: () -> Unit,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val repository = remember { SeedDataRepository() }
+    
     var steps by remember { mutableStateOf<List<Step>>(emptyList()) }
     var currentStepIndex by remember { mutableIntStateOf(0) }
     var furthestStepIndex by remember { mutableIntStateOf(0) }
@@ -47,7 +73,28 @@ fun ProceduresScreen(
     var detectList by remember { mutableStateOf<List<String>>(emptyList()) }
 
     // State for captured image in current session
-    var tempCapturedImage by remember { mutableStateOf<java.io.File?>(null) }
+    var tempCapturedImage by remember { mutableStateOf<File?>(null) }
+    
+    // Define a consistent ResolutionSelector to ensure full 4:3 native sensor FOV matches between Preview and Capture
+    val resolutionSelector = remember {
+        ResolutionSelector.Builder()
+            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+            .build()
+    }
+
+    // CameraX setups using the consistent resolution selector
+    val imageCapture = remember { 
+        ImageCapture.Builder()
+            .setResolutionSelector(resolutionSelector)
+            .build() 
+    }
+    val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            cameraExecutor.shutdown()
+        }
+    }
 
     LaunchedEffect(jobId) {
         val stepsResult = repository.getProcedures(jobId)
@@ -74,21 +121,29 @@ fun ProceduresScreen(
 
     val currentStep = steps[currentStepIndex]
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Top Bar
-        RealWearTopBar(
-            title = "STEP ${currentStepIndex + 1} - ${currentStep.title}",
-            rightContent = {
-                Text(
-                    text = "STEP ${currentStepIndex + 1} OF ${steps.size}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
-                )
-            }
-        )
+    // Added statusBarsPadding to prevent UI from hiding under the system bar
+    Column(modifier = Modifier.fillMaxSize().background(BgPrimary).statusBarsPadding()) {
+        // Top Bar - Strictly confined at the top
+        Surface(shadowElevation = 4.dp, color = BgPrimary) {
+            RealWearTopBar(
+                title = "STEP ${currentStepIndex + 1} - ${currentStep.title}",
+                rightContent = {
+                    Text(
+                        text = "STEP ${currentStepIndex + 1} OF ${steps.size}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary
+                    )
+                }
+            )
+        }
 
-        // Content Area - weight(1f) ensures it takes up all available space between bars
-        Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+        // Content Area - Strictly confined between Top and Bottom bars
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .clipToBounds() // Prevents camera preview from bleeding outside this area
+        ) {
             when (currentPattern) {
                 ProcedurePattern.Steps -> {
                     AsyncImage(
@@ -99,17 +154,43 @@ fun ProceduresScreen(
                     )
                 }
                 ProcedurePattern.Capture -> {
-                    Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
-                        // Viewfinder Simulation
+                    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+                        // Camera Preview confined to the content area
+                        CameraPreview(
+                            imageCapture = imageCapture,
+                            resolutionSelector = resolutionSelector,
+                            modifier = Modifier.fillMaxSize()
+                        )
+
+                        // Overlay captured photo to cover camera view once captured
+                        if (tempCapturedImage != null) {
+                            AsyncImage(
+                                model = tempCapturedImage,
+                                contentDescription = "Captured Photo",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Fit
+                            )
+                        }
+
+                        // Square Viewfinder Overlay - Centered in the content area
                         Box(
                             modifier = Modifier
-                                .size(200.dp)
-                                .border(2.dp, AccentBlue, RoundedCornerShape(8.dp))
+                                .fillMaxHeight(0.8f)
+                                .aspectRatio(1f)
+                                .align(Alignment.Center)
+                                .border(2.dp, if (tempCapturedImage != null) AccentGreen else AccentBlue, RoundedCornerShape(8.dp))
                         )
+                        
                         if (tempCapturedImage != null) {
-                            Text("PHOTO CAPTURED", color = AccentGreen, modifier = Modifier.align(Alignment.TopCenter).padding(16.dp))
-                        } else {
-                            Text("VIEWFINDER", color = AccentBlue)
+                            Text(
+                                "PHOTO CAPTURED", 
+                                color = AccentGreen, 
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .padding(top = 16.dp)
+                                    .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                                    .padding(horizontal = 12.dp, vertical = 4.dp)
+                            )
                         }
                     }
                 }
@@ -117,7 +198,16 @@ fun ProceduresScreen(
                     Row(modifier = Modifier.fillMaxSize()) {
                         // Left 70%: Captured Image
                         Box(modifier = Modifier.weight(0.7f).fillMaxHeight().background(BgSurface)) {
-                            Text("CAPTURED IMAGE PREVIEW", modifier = Modifier.align(Alignment.Center), color = TextSecondary)
+                            if (tempCapturedImage != null) {
+                                AsyncImage(
+                                    model = tempCapturedImage,
+                                    contentDescription = "Captured Image",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Fit
+                                )
+                            } else {
+                                Text("NO IMAGE CAPTURED", modifier = Modifier.align(Alignment.Center), color = TextSecondary)
+                            }
                             
                             RealWearButton(
                                 label = "RETAKE",
@@ -126,7 +216,7 @@ fun ProceduresScreen(
                                     currentPattern = ProcedurePattern.Capture 
                                 },
                                 modifier = Modifier.align(Alignment.BottomStart).padding(8.dp),
-                                containerColor = Color.Transparent,
+                                containerColor = Color.Black.copy(alpha = 0.5f),
                                 contentColor = AccentBlue
                             )
                         }
@@ -163,7 +253,7 @@ fun ProceduresScreen(
             }
         }
 
-        // Bottom Bar - Using RealWearBottomBar to ensure equal and full-height buttons
+        // Bottom Bar
         RealWearBottomBar {
             when (currentPattern) {
                 ProcedurePattern.Steps -> {
@@ -196,16 +286,36 @@ fun ProceduresScreen(
                 }
                 ProcedurePattern.Capture -> {
                     RealWearButton(
-                        label = "CAPTURE AGAIN",
-                        onClick = { tempCapturedImage = null },
-                        enabled = tempCapturedImage != null,
+                        label = "BACK",
+                        onClick = { currentPattern = ProcedurePattern.Steps },
                         modifier = Modifier.weight(1f).fillMaxHeight()
                     )
-                    RealWearButton(
-                        label = "CAPTURE",
-                        onClick = { tempCapturedImage = java.io.File("dummy.jpg") },
-                        modifier = Modifier.weight(1f).fillMaxHeight()
-                    )
+                    if (tempCapturedImage != null) {
+                        RealWearButton(
+                            label = "RETAKE",
+                            onClick = { tempCapturedImage = null },
+                            modifier = Modifier.weight(1f).fillMaxHeight()
+                        )
+                    } else {
+                        RealWearButton(
+                            label = "CAPTURE",
+                            onClick = {
+                                takePhoto(
+                                    context = context,
+                                    imageCapture = imageCapture,
+                                    executor = cameraExecutor,
+                                    jobId = jobId,
+                                    onImageCaptured = { file ->
+                                        tempCapturedImage = file
+                                    },
+                                    onError = {
+                                        Log.e("Camera", "Capture failed", it)
+                                    }
+                                )
+                            },
+                            modifier = Modifier.weight(1f).fillMaxHeight()
+                        )
+                    }
                     RealWearButton(
                         label = "VERIFY CAPTURE",
                         onClick = {
@@ -217,12 +327,9 @@ fun ProceduresScreen(
                 }
                 ProcedurePattern.Review -> {
                     RealWearButton(
-                        label = "PREVIOUS STEP",
+                        label = "BACK TO STEPS",
                         onClick = {
-                            if (currentStepIndex > 0) {
-                                currentStepIndex--
-                                currentPattern = ProcedurePattern.Review
-                            }
+                            currentPattern = ProcedurePattern.Steps
                         },
                         modifier = Modifier.weight(1f).fillMaxHeight()
                     )
@@ -239,6 +346,7 @@ fun ProceduresScreen(
                                 currentStepIndex++
                                 furthestStepIndex = maxOf(furthestStepIndex, currentStepIndex)
                                 currentPattern = ProcedurePattern.Steps
+                                tempCapturedImage = null
                             }
                         },
                         containerColor = if (isLastStep) AccentGreen else BgSurfaceRaised,
@@ -250,7 +358,95 @@ fun ProceduresScreen(
     }
 }
 
-@Preview(showBackground = true, widthDp = 1280, heightDp = 720)
+@Composable
+fun CameraPreview(
+    imageCapture: ImageCapture,
+    resolutionSelector: ResolutionSelector,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+    
+    AndroidView(
+        factory = { ctx ->
+            val previewView = PreviewView(ctx).apply {
+                // FIT_CENTER ensures the full native field of view (top to bottom, left to right) is visible without cropping/zooming
+                scaleType = PreviewView.ScaleType.FIT_CENTER
+                // COMPATIBLE mode (TextureView) handles Compose Z-order better for overlays
+                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+            }
+            // Use the same resolution selector for the preview to match aspect ratios
+            val preview = Preview.Builder()
+                .setResolutionSelector(resolutionSelector)
+                .build()
+            val selector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            preview.setSurfaceProvider(previewView.surfaceProvider)
+
+            cameraProviderFuture.addListener({
+                try {
+                    val cameraProvider = cameraProviderFuture.get()
+                    // Unbind all before binding to ensure new settings apply correctly
+                    cameraProvider.unbindAll()
+
+                    // Use ViewPort & UseCaseGroup so CameraX forces Preview and ImageCapture to have identical cropping and FOV
+                    val viewPort = previewView.viewPort ?: ViewPort.Builder(
+                        Rational(4, 3),
+                        previewView.display?.rotation ?: Surface.ROTATION_0
+                    ).setScaleType(ViewPort.FIT).build()
+
+                    val useCaseGroup = UseCaseGroup.Builder()
+                        .addUseCase(preview)
+                        .addUseCase(imageCapture)
+                        .setViewPort(viewPort)
+                        .build()
+
+                    val camera = cameraProvider.bindToLifecycle(
+                        lifecycleOwner,
+                        selector,
+                        useCaseGroup
+                    )
+                    // Reset hardware zoom to 1.0x to ensure native wide FOV
+                    camera.cameraControl.setZoomRatio(1.0f)
+                } catch (e: Exception) {
+                    Log.e("CameraPreview", "Use case binding failed", e)
+                }
+            }, ContextCompat.getMainExecutor(context))
+
+            previewView
+        },
+        modifier = modifier
+    )
+}
+
+private fun takePhoto(
+    context: Context,
+    imageCapture: ImageCapture,
+    executor: ExecutorService,
+    jobId: String,
+    onImageCaptured: (File) -> Unit,
+    onError: (ImageCaptureException) -> Unit
+) {
+    val photoFile = StorageUtils.getOutputOptions(context, jobId)
+    val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+    imageCapture.takePicture(
+        outputOptions,
+        executor,
+        object : ImageCapture.OnImageSavedCallback {
+            override fun onError(exception: ImageCaptureException) {
+                onError(exception)
+            }
+
+            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                onImageCaptured(photoFile)
+            }
+        }
+    )
+}
+
+@ComposablePreview(showBackground = true, widthDp = 1280, heightDp = 720)
 @Composable
 fun ProceduresScreenPreview() {
     QAApp_RealwearTheme {

@@ -1,5 +1,11 @@
 package com.studio249.qaapp_realwear.ui.screens
 
+import android.content.Context
+import android.util.Log
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -10,8 +16,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -20,7 +28,10 @@ import com.studio249.qaapp_realwear.model.Step
 import com.studio249.qaapp_realwear.ui.components.RealWearButton
 import com.studio249.qaapp_realwear.ui.components.RealWearTopBar
 import com.studio249.qaapp_realwear.ui.theme.*
+import com.studio249.qaapp_realwear.utils.StorageUtils
 import java.io.File
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 @Composable
 fun InProgressScreen(
@@ -28,12 +39,31 @@ fun InProgressScreen(
     onComplete: () -> Unit,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val repository = remember { SeedDataRepository() }
     var steps by remember { mutableStateOf<List<Step>>(emptyList()) }
     var currentStepIndex by remember { mutableIntStateOf(0) }
     var isLoading by remember { mutableStateOf(true) }
     var isCameraActive by remember { mutableStateOf(false) }
-    var tempCapturedImage by remember { mutableStateOf<File?>(null) }
+
+    // ResolutionSelector and CameraX configuration matching ProceduresScreen
+    val resolutionSelector = remember {
+        ResolutionSelector.Builder()
+            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+            .build()
+    }
+    val imageCapture = remember {
+        ImageCapture.Builder()
+            .setResolutionSelector(resolutionSelector)
+            .build()
+    }
+    val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            cameraExecutor.shutdown()
+        }
+    }
 
     LaunchedEffect(jobId) {
         val result = repository.getInProgressProcedures(jobId)
@@ -57,8 +87,9 @@ fun InProgressScreen(
     }
 
     val currentStep = steps[currentStepIndex]
+    val currentCapturedImage = currentStep.capturedImage
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().background(BgPrimary).statusBarsPadding()) {
         RealWearTopBar(
             title = "STEP ${currentStepIndex + 1} - ${currentStep.title}",
             rightContent = {
@@ -70,18 +101,47 @@ fun InProgressScreen(
             }
         )
 
-        Box(modifier = Modifier.fillMaxWidth().weight(0.76f)) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .clipToBounds()
+        ) {
             if (isCameraActive) {
-                Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+                    CameraPreview(
+                        imageCapture = imageCapture,
+                        resolutionSelector = resolutionSelector,
+                        modifier = Modifier.fillMaxSize()
+                    )
+
+                    if (currentCapturedImage != null) {
+                        AsyncImage(
+                            model = currentCapturedImage,
+                            contentDescription = "Captured Photo",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+
                     Box(
                         modifier = Modifier
-                            .size(300.dp)
-                            .border(2.dp, AccentBlue, RoundedCornerShape(8.dp))
+                            .fillMaxHeight(0.8f)
+                            .aspectRatio(1f)
+                            .align(Alignment.Center)
+                            .border(2.dp, if (currentCapturedImage != null) AccentGreen else AccentBlue, RoundedCornerShape(8.dp))
                     )
-                    if (tempCapturedImage != null) {
-                        Text("PHOTO CAPTURED", color = AccentGreen, modifier = Modifier.align(Alignment.TopCenter).padding(16.dp))
-                    } else {
-                        Text("VIEWFINDER", color = AccentBlue)
+
+                    if (currentCapturedImage != null) {
+                        Text(
+                            "PHOTO CAPTURED",
+                            color = AccentGreen,
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = 16.dp)
+                                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                                .padding(horizontal = 12.dp, vertical = 4.dp)
+                        )
                     }
                 }
             } else {
@@ -97,50 +157,112 @@ fun InProgressScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.14f)
+                .height(64.dp)
                 .background(BgSurface)
                 .padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (!isCameraActive) {
-                Spacer(modifier = Modifier.weight(1f))
+                RealWearButton(
+                    label = "PREVIOUS STEP",
+                    onClick = {
+                        if (currentStepIndex > 0) {
+                            currentStepIndex--
+                        } else {
+                            onBack()
+                        }
+                    },
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                )
                 RealWearButton(
                     label = "DEFECTS FIXED",
                     onClick = { isCameraActive = true },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).fillMaxHeight()
                 )
             } else {
                 RealWearButton(
-                    label = "CAPTURE AGAIN",
-                    onClick = { tempCapturedImage = null },
-                    enabled = tempCapturedImage != null,
-                    modifier = Modifier.weight(1f)
+                    label = "PREVIOUS STEP",
+                    onClick = {
+                        isCameraActive = false
+                    },
+                    modifier = Modifier.weight(1f).fillMaxHeight()
                 )
-                RealWearButton(
-                    label = "CAPTURE",
-                    onClick = { tempCapturedImage = File("dummy.jpg") },
-                    modifier = Modifier.weight(1f)
-                )
+                if (currentCapturedImage != null) {
+                    RealWearButton(
+                        label = "RETAKE",
+                        onClick = {
+                            steps = steps.mapIndexed { i, s ->
+                                if (i == currentStepIndex) s.copy(capturedImage = null) else s
+                            }
+                        },
+                        modifier = Modifier.weight(1f).fillMaxHeight()
+                    )
+                } else {
+                    RealWearButton(
+                        label = "CAPTURE",
+                        onClick = {
+                            takePhoto(
+                                context = context,
+                                imageCapture = imageCapture,
+                                executor = cameraExecutor,
+                                jobId = jobId,
+                                onImageCaptured = { file ->
+                                    steps = steps.mapIndexed { i, s ->
+                                        if (i == currentStepIndex) s.copy(capturedImage = file) else s
+                                    }
+                                },
+                                onError = { exception ->
+                                    Log.e("InProgressCamera", "Capture failed", exception)
+                                }
+                            )
+                        },
+                        modifier = Modifier.weight(1f).fillMaxHeight()
+                    )
+                }
                 RealWearButton(
                     label = "VERIFY CAPTURE",
                     onClick = {
-                        // Simulate API call PostUpdateInProgressJob
                         if (currentStepIndex < steps.size - 1) {
                             currentStepIndex++
-                            tempCapturedImage = null
                             isCameraActive = false
                         } else {
                             onComplete()
                         }
                     },
-                    enabled = tempCapturedImage != null,
+                    enabled = currentCapturedImage != null,
                     containerColor = AccentGreen,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).fillMaxHeight()
                 )
             }
         }
     }
+}
+
+private fun takePhoto(
+    context: Context,
+    imageCapture: ImageCapture,
+    executor: ExecutorService,
+    jobId: String,
+    onImageCaptured: (File) -> Unit,
+    onError: (ImageCaptureException) -> Unit
+) {
+    val photoFile = StorageUtils.getOutputOptions(context, jobId)
+    val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+    imageCapture.takePicture(
+        outputOptions,
+        executor,
+        object : ImageCapture.OnImageSavedCallback {
+            override fun onError(exception: ImageCaptureException) {
+                onError(exception)
+            }
+
+            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                onImageCaptured(photoFile)
+            }
+        }
+    )
 }
 
 @Preview(showBackground = true, widthDp = 1280, heightDp = 720)
@@ -154,3 +276,4 @@ fun InProgressScreenPreview() {
         )
     }
 }
+

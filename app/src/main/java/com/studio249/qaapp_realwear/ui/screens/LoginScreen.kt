@@ -13,10 +13,12 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -28,6 +30,7 @@ import com.google.mlkit.vision.common.InputImage
 import com.studio249.qaapp_realwear.ui.components.RealWearButton
 import com.studio249.qaapp_realwear.ui.components.RealWearTopBar
 import com.studio249.qaapp_realwear.ui.theme.AccentBlue
+import com.studio249.qaapp_realwear.ui.theme.BgPrimary
 import com.studio249.qaapp_realwear.ui.theme.QAApp_RealwearTheme
 import kotlinx.coroutines.delay
 import java.util.concurrent.Executors
@@ -57,16 +60,21 @@ fun LoginScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-        RealWearTopBar(title = "LOGIN")
+    Column(modifier = Modifier.fillMaxSize().background(BgPrimary).statusBarsPadding()) {
+        // Top Bar - Strictly confined at top with elevation
+        Surface(shadowElevation = 4.dp, color = BgPrimary) {
+            RealWearTopBar(title = "LOGIN")
+        }
 
+        // Camera Content Area - Strictly confined below top bar
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.76f),
+                .weight(1f)
+                .clipToBounds(),
             contentAlignment = Alignment.Center
         ) {
-            // Camera Feed fills the entire content area
+            // Camera Feed fills content area without bleeding past top bar
             if (loginState == LoginState.Scanning) {
                 QrScannerView(
                     modifier = Modifier.fillMaxSize(),
@@ -77,10 +85,11 @@ fun LoginScreen(
                     }
                 )
 
-                // Visual Scanning Frame Overlay (Center Reticle)
+                // Visual Scanning Frame Overlay
                 Box(
                     modifier = Modifier
-                        .size(300.dp)
+                        .fillMaxHeight(0.75f)
+                        .aspectRatio(1f)
                         .border(2.dp, AccentBlue.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
                 )
             } else if (loginState == LoginState.LoggingIn) {
@@ -136,9 +145,6 @@ fun LoginScreen(
                 else -> {}
             }
         }
-
-        // Bottom area matching the weight of other screens
-        Box(modifier = Modifier.fillMaxWidth().weight(0.14f))
     }
 }
 
@@ -151,22 +157,32 @@ fun QrScannerView(
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
 
+    val resolutionSelector = remember {
+        androidx.camera.core.resolutionselector.ResolutionSelector.Builder()
+            .setAspectRatioStrategy(androidx.camera.core.resolutionselector.AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+            .build()
+    }
+
     AndroidView(
         factory = { ctx ->
             val previewView = PreviewView(ctx).apply {
-                scaleType = PreviewView.ScaleType.FILL_CENTER
+                scaleType = PreviewView.ScaleType.FIT_CENTER
+                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
             }
             val executor = ContextCompat.getMainExecutor(ctx)
             cameraProviderFuture.addListener({
                 val cameraProvider = cameraProviderFuture.get()
 
-                val preview = Preview.Builder().build().also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
-                }
+                val preview = Preview.Builder()
+                    .setResolutionSelector(resolutionSelector)
+                    .build().also {
+                        it.setSurfaceProvider(previewView.surfaceProvider)
+                    }
 
                 val selector = CameraSelector.DEFAULT_BACK_CAMERA
 
                 val imageAnalysis = ImageAnalysis.Builder()
+                    .setResolutionSelector(resolutionSelector)
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
 
@@ -179,12 +195,14 @@ fun QrScannerView(
 
                 try {
                     cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(
+                    val camera = cameraProvider.bindToLifecycle(
                         lifecycleOwner,
                         selector,
                         preview,
                         imageAnalysis
                     )
+                    // Explicitly set camera hardware zoom to 1.0x (1x full wide view)
+                    camera.cameraControl.setZoomRatio(1.0f)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
