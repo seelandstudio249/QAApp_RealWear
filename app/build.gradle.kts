@@ -58,6 +58,9 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
 
+    // ML Kit Barcode Scanning
+    implementation(libs.barcode.scanning)
+
     // Image Loading
     implementation(libs.coil.compose)
 

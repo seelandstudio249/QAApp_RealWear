@@ -7,7 +7,7 @@ import com.studio249.qaapp_realwear.model.StepStatus
 import java.time.LocalDateTime
 
 object SeedData {
-    const val FIXED_LOGIN_STRING = "QA249LOGIN"
+    const val FIXED_LOGIN_STRING = "QAApp"
     const val FAKE_TOKEN = "dummy_session_token_12345"
 
     val detectList = listOf("Detect 1", "Detect 2", "Detect 3", "Detect 4")
