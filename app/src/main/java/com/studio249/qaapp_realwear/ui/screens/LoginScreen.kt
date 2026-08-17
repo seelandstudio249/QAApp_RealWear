@@ -159,7 +159,7 @@ fun QrScannerView(
 
     val resolutionSelector = remember {
         androidx.camera.core.resolutionselector.ResolutionSelector.Builder()
-            .setAspectRatioStrategy(androidx.camera.core.resolutionselector.AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+            .setAspectRatioStrategy(androidx.camera.core.resolutionselector.AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
             .build()
     }
 

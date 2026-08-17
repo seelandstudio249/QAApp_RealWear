@@ -19,4 +19,6 @@ sealed class Screen(val route: String) {
     object InVerify : Screen("in_verify/{jobId}") {
         fun createRoute(jobId: String) = "in_verify/$jobId"
     }
+
+    object TestCam : Screen("test_cam")
 }

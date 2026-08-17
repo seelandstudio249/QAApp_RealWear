@@ -77,13 +77,14 @@ fun RealWearButton(
 fun RealWearTopBar(
     title: String,
     modifier: Modifier = Modifier,
+    backgroundColor: Color = BgPrimary,
     rightContent: @Composable () -> Unit = {}
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(72.dp) 
-            .background(BgPrimary)
+            .height(50.dp)
+            .background(backgroundColor)
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -103,13 +104,14 @@ fun RealWearTopBar(
 @Composable
 fun RealWearBottomBar(
     modifier: Modifier = Modifier,
+    backgroundColor: Color = BgSurface,
     content: @Composable RowScope.() -> Unit
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(50.dp)
-            .background(BgSurface)
+            .background(backgroundColor)
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),

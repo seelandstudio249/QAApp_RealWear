@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.studio249.qaapp_realwear.data.SeedDataRepository
 import com.studio249.qaapp_realwear.model.Step
+import com.studio249.qaapp_realwear.ui.components.RealWearBottomBar
 import com.studio249.qaapp_realwear.ui.components.RealWearButton
 import com.studio249.qaapp_realwear.ui.components.RealWearTopBar
 import com.studio249.qaapp_realwear.ui.theme.*
@@ -49,7 +50,7 @@ fun InProgressScreen(
     // ResolutionSelector and CameraX configuration matching ProceduresScreen
     val resolutionSelector = remember {
         ResolutionSelector.Builder()
-            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
             .build()
     }
     val imageCapture = remember {
@@ -89,103 +90,69 @@ fun InProgressScreen(
     val currentStep = steps[currentStepIndex]
     val currentCapturedImage = currentStep.capturedImage
 
-    Column(modifier = Modifier.fillMaxSize().background(BgPrimary).statusBarsPadding()) {
-        RealWearTopBar(
-            title = "STEP ${currentStepIndex + 1} - ${currentStep.title}",
-            rightContent = {
-                Text(
-                    text = "STEP ${currentStepIndex + 1} OF ${steps.size}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
-                )
-            }
-        )
+    if (isCameraActive) {
+        // Full-Screen Camera Overlay Layout (matching ProceduresScreen Capture pattern)
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black).statusBarsPadding()) {
+            // Full-screen camera preview layer
+            CameraPreview(
+                imageCapture = imageCapture,
+                resolutionSelector = resolutionSelector,
+                modifier = Modifier.fillMaxSize()
+            )
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .clipToBounds()
-        ) {
-            if (isCameraActive) {
-                Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-                    CameraPreview(
-                        imageCapture = imageCapture,
-                        resolutionSelector = resolutionSelector,
-                        modifier = Modifier.fillMaxSize()
-                    )
-
-                    if (currentCapturedImage != null) {
-                        AsyncImage(
-                            model = currentCapturedImage,
-                            contentDescription = "Captured Photo",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Fit
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight(0.8f)
-                            .aspectRatio(1f)
-                            .align(Alignment.Center)
-                            .border(2.dp, if (currentCapturedImage != null) AccentGreen else AccentBlue, RoundedCornerShape(8.dp))
-                    )
-
-                    if (currentCapturedImage != null) {
-                        Text(
-                            "PHOTO CAPTURED",
-                            color = AccentGreen,
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .padding(top = 16.dp)
-                                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
-                                .padding(horizontal = 12.dp, vertical = 4.dp)
-                        )
-                    }
-                }
-            } else {
+            // Overlay captured photo across full screen once captured
+            if (currentCapturedImage != null) {
                 AsyncImage(
-                    model = currentStep.stepImage,
-                    contentDescription = null,
+                    model = currentCapturedImage,
+                    contentDescription = "Captured Photo",
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
+                    contentScale = ContentScale.Crop
                 )
             }
-        }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp)
-                .background(BgSurface)
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (!isCameraActive) {
+            // Square Viewfinder Overlay - Centered in the screen area
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight(0.75f)
+                    .aspectRatio(1f)
+                    .align(Alignment.Center)
+                    .border(2.dp, if (currentCapturedImage != null) AccentGreen else AccentBlue, RoundedCornerShape(8.dp))
+            )
+
+            if (currentCapturedImage != null) {
+                Text(
+                    "PHOTO CAPTURED",
+                    color = AccentGreen,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 80.dp)
+                        .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 12.dp, vertical = 4.dp)
+                )
+            }
+
+            // Floating Top Bar Overlay (Translucent during live camera preview)
+            RealWearTopBar(
+                title = "STEP ${currentStepIndex + 1} - ${currentStep.title}",
+                modifier = Modifier.align(Alignment.TopCenter),
+                backgroundColor = Color.Black.copy(alpha = 0.40f),
+                rightContent = {
+                    Text(
+                        text = "STEP ${currentStepIndex + 1} OF ${steps.size}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary
+                    )
+                }
+            )
+
+            // Floating Bottom Bar Overlay (Translucent during live camera preview)
+            RealWearBottomBar(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                backgroundColor = Color.Black.copy(alpha = 0.40f)
+            ) {
                 RealWearButton(
                     label = "PREVIOUS STEP",
-                    onClick = {
-                        if (currentStepIndex > 0) {
-                            currentStepIndex--
-                        } else {
-                            onBack()
-                        }
-                    },
-                    modifier = Modifier.weight(1f).fillMaxHeight()
-                )
-                RealWearButton(
-                    label = "DEFECTS FIXED",
-                    onClick = { isCameraActive = true },
-                    modifier = Modifier.weight(1f).fillMaxHeight()
-                )
-            } else {
-                RealWearButton(
-                    label = "PREVIOUS STEP",
-                    onClick = {
-                        isCameraActive = false
-                    },
+                    onClick = { isCameraActive = false },
                     modifier = Modifier.weight(1f).fillMaxHeight()
                 )
                 if (currentCapturedImage != null) {
@@ -232,6 +199,61 @@ fun InProgressScreen(
                     },
                     enabled = currentCapturedImage != null,
                     containerColor = AccentGreen,
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                )
+            }
+        }
+    } else {
+        // Standard layout when camera is not active
+        Column(modifier = Modifier.fillMaxSize().background(BgPrimary).statusBarsPadding()) {
+            RealWearTopBar(
+                title = "STEP ${currentStepIndex + 1} - ${currentStep.title}",
+                rightContent = {
+                    Text(
+                        text = "STEP ${currentStepIndex + 1} OF ${steps.size}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary
+                    )
+                }
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clipToBounds()
+            ) {
+                AsyncImage(
+                    model = currentStep.stepImage,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp)
+                    .background(BgSurface)
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                RealWearButton(
+                    label = "PREVIOUS STEP",
+                    onClick = {
+                        if (currentStepIndex > 0) {
+                            currentStepIndex--
+                        } else {
+                            onBack()
+                        }
+                    },
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                )
+                RealWearButton(
+                    label = "DEFECTS FIXED",
+                    onClick = { isCameraActive = true },
                     modifier = Modifier.weight(1f).fillMaxHeight()
                 )
             }

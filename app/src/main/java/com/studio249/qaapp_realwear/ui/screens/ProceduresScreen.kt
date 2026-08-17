@@ -78,7 +78,7 @@ fun ProceduresScreen(
     // Define a consistent ResolutionSelector to ensure full 4:3 native sensor FOV matches between Preview and Capture
     val resolutionSelector = remember {
         ResolutionSelector.Builder()
-            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
             .build()
     }
 
@@ -122,11 +122,51 @@ fun ProceduresScreen(
     val currentStep = steps[currentStepIndex]
 
     // Added statusBarsPadding to prevent UI from hiding under the system bar
-    Column(modifier = Modifier.fillMaxSize().background(BgPrimary).statusBarsPadding()) {
-        // Top Bar - Strictly confined at the top
-        Surface(shadowElevation = 4.dp, color = BgPrimary) {
+    Box(modifier = Modifier.fillMaxSize().background(BgPrimary).statusBarsPadding()) {
+        if (currentPattern == ProcedurePattern.Capture) {
+            // Full-Screen Camera Preview Feed
+            CameraPreview(
+                imageCapture = imageCapture,
+                resolutionSelector = resolutionSelector,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            // Overlay captured photo across full screen once captured
+            if (tempCapturedImage != null) {
+                AsyncImage(
+                    model = tempCapturedImage,
+                    contentDescription = "Captured Photo",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            // Square Viewfinder Overlay - Centered in the screen area
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight(0.75f)
+                    .aspectRatio(1f)
+                    .align(Alignment.Center)
+                    .border(2.dp, if (tempCapturedImage != null) AccentGreen else AccentBlue, RoundedCornerShape(8.dp))
+            )
+
+            if (tempCapturedImage != null) {
+                Text(
+                    "PHOTO CAPTURED",
+                    color = AccentGreen,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 80.dp)
+                        .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 12.dp, vertical = 4.dp)
+                )
+            }
+
+            // Floating Top Bar Overlay (Translucent during live camera preview)
             RealWearTopBar(
                 title = "STEP ${currentStepIndex + 1} - ${currentStep.title}",
+                modifier = Modifier.align(Alignment.TopCenter),
+                backgroundColor = Color.Black.copy(alpha = 0.40f),
                 rightContent = {
                     Text(
                         text = "STEP ${currentStepIndex + 1} OF ${steps.size}",
@@ -135,223 +175,203 @@ fun ProceduresScreen(
                     )
                 }
             )
-        }
 
-        // Content Area - Strictly confined between Top and Bottom bars
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .clipToBounds() // Prevents camera preview from bleeding outside this area
-        ) {
-            when (currentPattern) {
-                ProcedurePattern.Steps -> {
-                    AsyncImage(
-                        model = currentStep.stepImage,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
+            // Floating Bottom Bar Overlay (Translucent during live camera preview)
+            RealWearBottomBar(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                backgroundColor = Color.Black.copy(alpha = 0.40f)
+            ) {
+                RealWearButton(
+                    label = "BACK",
+                    onClick = { currentPattern = ProcedurePattern.Steps },
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                )
+                if (tempCapturedImage != null) {
+                    RealWearButton(
+                        label = "RETAKE",
+                        onClick = { tempCapturedImage = null },
+                        modifier = Modifier.weight(1f).fillMaxHeight()
+                    )
+                } else {
+                    RealWearButton(
+                        label = "CAPTURE",
+                        onClick = {
+                            takePhoto(
+                                context = context,
+                                imageCapture = imageCapture,
+                                executor = cameraExecutor,
+                                jobId = jobId,
+                                onImageCaptured = { file ->
+                                    tempCapturedImage = file
+                                },
+                                onError = {
+                                    Log.e("Camera", "Capture failed", it)
+                                }
+                            )
+                        },
+                        modifier = Modifier.weight(1f).fillMaxHeight()
                     )
                 }
-                ProcedurePattern.Capture -> {
-                    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-                        // Camera Preview confined to the content area
-                        CameraPreview(
-                            imageCapture = imageCapture,
-                            resolutionSelector = resolutionSelector,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                RealWearButton(
+                    label = "VERIFY CAPTURE",
+                    onClick = {
+                        currentPattern = ProcedurePattern.Review
+                    },
+                    enabled = tempCapturedImage != null,
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                )
+            }
+        } else {
+            // Standard Layout for Steps and Review patterns
+            Column(modifier = Modifier.fillMaxSize()) {
+                Surface(shadowElevation = 4.dp, color = BgPrimary) {
+                    RealWearTopBar(
+                        title = "STEP ${currentStepIndex + 1} - ${currentStep.title}",
+                        rightContent = {
+                            Text(
+                                text = "STEP ${currentStepIndex + 1} OF ${steps.size}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextSecondary
+                            )
+                        }
+                    )
+                }
 
-                        // Overlay captured photo to cover camera view once captured
-                        if (tempCapturedImage != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .clipToBounds()
+                ) {
+                    when (currentPattern) {
+                        ProcedurePattern.Steps -> {
                             AsyncImage(
-                                model = tempCapturedImage,
-                                contentDescription = "Captured Photo",
+                                model = currentStep.stepImage,
+                                contentDescription = null,
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Fit
                             )
                         }
-
-                        // Square Viewfinder Overlay - Centered in the content area
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight(0.8f)
-                                .aspectRatio(1f)
-                                .align(Alignment.Center)
-                                .border(2.dp, if (tempCapturedImage != null) AccentGreen else AccentBlue, RoundedCornerShape(8.dp))
-                        )
-                        
-                        if (tempCapturedImage != null) {
-                            Text(
-                                "PHOTO CAPTURED", 
-                                color = AccentGreen, 
-                                modifier = Modifier
-                                    .align(Alignment.TopCenter)
-                                    .padding(top = 16.dp)
-                                    .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
-                                    .padding(horizontal = 12.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
-                }
-                ProcedurePattern.Review -> {
-                    Row(modifier = Modifier.fillMaxSize()) {
-                        // Left 70%: Captured Image
-                        Box(modifier = Modifier.weight(0.7f).fillMaxHeight().background(BgSurface)) {
-                            if (tempCapturedImage != null) {
-                                AsyncImage(
-                                    model = tempCapturedImage,
-                                    contentDescription = "Captured Image",
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Fit
-                                )
-                            } else {
-                                Text("NO IMAGE CAPTURED", modifier = Modifier.align(Alignment.Center), color = TextSecondary)
-                            }
-                            
-                            RealWearButton(
-                                label = "RETAKE",
-                                onClick = { 
-                                    tempCapturedImage = null
-                                    currentPattern = ProcedurePattern.Capture 
-                                },
-                                modifier = Modifier.align(Alignment.BottomStart).padding(8.dp),
-                                containerColor = Color.Black.copy(alpha = 0.5f),
-                                contentColor = AccentBlue
-                            )
-                        }
-                        
-                        // Right 30%: Detect List
-                        Column(modifier = Modifier.weight(0.3f).fillMaxHeight().padding(8.dp)) {
-                            Text("DETECT LIST", style = MaterialTheme.typography.labelLarge, color = TextPrimary)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            LazyColumn {
-                                items(detectList) { item ->
-                                    val isSelected = currentStep.selectedDetectItem == item
-                                    Text(
-                                        text = item,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .background(if (isSelected) AccentBlue.copy(alpha = 0.15f) else Color.Transparent)
-                                            .then(if (isSelected) Modifier.border(width = 2.dp, color = AccentBlue, shape = RoundedCornerShape(4.dp)) else Modifier)
-                                            .clickable { 
-                                                steps = steps.mapIndexed { i, s ->
-                                                    if (i == currentStepIndex) s.copy(selectedDetectItem = item) else s
-                                                }
-                                            }
-                                            .padding(12.dp),
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = TextPrimary
-                                    )
-                                    HorizontalDivider(color = DividerColor)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Bottom Bar
-        RealWearBottomBar {
-            when (currentPattern) {
-                ProcedurePattern.Steps -> {
-                    RealWearButton(
-                        label = "PREVIOUS STEP",
-                        onClick = {
-                            if (currentStepIndex > 0) {
-                                currentStepIndex--
-                                currentPattern = ProcedurePattern.Review
-                            } else {
-                                onBack()
-                            }
-                        },
-                        modifier = Modifier.weight(1f).fillMaxHeight()
-                    )
-                    RealWearButton(
-                        label = "NEXT STEP",
-                        onClick = {
-                            if (currentStep.status == StepStatus.Verified) {
-                                if (currentStepIndex < steps.size - 1) {
-                                    currentStepIndex++
-                                    currentPattern = ProcedurePattern.Steps
-                                }
-                            } else {
-                                currentPattern = ProcedurePattern.Capture
-                            }
-                        },
-                        modifier = Modifier.weight(1f).fillMaxHeight()
-                    )
-                }
-                ProcedurePattern.Capture -> {
-                    RealWearButton(
-                        label = "BACK",
-                        onClick = { currentPattern = ProcedurePattern.Steps },
-                        modifier = Modifier.weight(1f).fillMaxHeight()
-                    )
-                    if (tempCapturedImage != null) {
-                        RealWearButton(
-                            label = "RETAKE",
-                            onClick = { tempCapturedImage = null },
-                            modifier = Modifier.weight(1f).fillMaxHeight()
-                        )
-                    } else {
-                        RealWearButton(
-                            label = "CAPTURE",
-                            onClick = {
-                                takePhoto(
-                                    context = context,
-                                    imageCapture = imageCapture,
-                                    executor = cameraExecutor,
-                                    jobId = jobId,
-                                    onImageCaptured = { file ->
-                                        tempCapturedImage = file
-                                    },
-                                    onError = {
-                                        Log.e("Camera", "Capture failed", it)
+                        ProcedurePattern.Review -> {
+                            Row(modifier = Modifier.fillMaxSize()) {
+                                // Left 70%: Captured Image
+                                Box(modifier = Modifier.weight(0.7f).fillMaxHeight().background(BgSurface)) {
+                                    if (tempCapturedImage != null) {
+                                        AsyncImage(
+                                            model = tempCapturedImage,
+                                            contentDescription = "Captured Image",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Fit
+                                        )
+                                    } else {
+                                        Text("NO IMAGE CAPTURED", modifier = Modifier.align(Alignment.Center), color = TextSecondary)
                                     }
-                                )
-                            },
-                            modifier = Modifier.weight(1f).fillMaxHeight()
-                        )
+
+                                    RealWearButton(
+                                        label = "RETAKE",
+                                        onClick = {
+                                            tempCapturedImage = null
+                                            currentPattern = ProcedurePattern.Capture
+                                        },
+                                        modifier = Modifier.align(Alignment.BottomStart).padding(8.dp),
+                                        containerColor = Color.Black.copy(alpha = 0.5f),
+                                        contentColor = AccentBlue
+                                    )
+                                }
+
+                                // Right 30%: Detect List
+                                Column(modifier = Modifier.weight(0.3f).fillMaxHeight().padding(8.dp)) {
+                                    Text("DETECT LIST", style = MaterialTheme.typography.labelLarge, color = TextPrimary)
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    LazyColumn {
+                                        items(detectList) { item ->
+                                            val isSelected = currentStep.selectedDetectItem == item
+                                            Text(
+                                                text = item,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clip(RoundedCornerShape(4.dp))
+                                                    .background(if (isSelected) AccentBlue.copy(alpha = 0.15f) else Color.Transparent)
+                                                    .then(if (isSelected) Modifier.border(width = 2.dp, color = AccentBlue, shape = RoundedCornerShape(4.dp)) else Modifier)
+                                                    .clickable {
+                                                        steps = steps.mapIndexed { i, s ->
+                                                            if (i == currentStepIndex) s.copy(selectedDetectItem = item) else s
+                                                        }
+                                                    }
+                                                    .padding(12.dp),
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                color = TextPrimary
+                                            )
+                                            HorizontalDivider(color = DividerColor)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else -> {}
                     }
-                    RealWearButton(
-                        label = "VERIFY CAPTURE",
-                        onClick = {
-                            currentPattern = ProcedurePattern.Review
-                        },
-                        enabled = tempCapturedImage != null,
-                        modifier = Modifier.weight(1f).fillMaxHeight()
-                    )
                 }
-                ProcedurePattern.Review -> {
-                    RealWearButton(
-                        label = "BACK TO STEPS",
-                        onClick = {
-                            currentPattern = ProcedurePattern.Steps
-                        },
-                        modifier = Modifier.weight(1f).fillMaxHeight()
-                    )
-                    val isLastStep = currentStepIndex == steps.size - 1
-                    RealWearButton(
-                        label = if (isLastStep) "COMPLETE JOB" else "NEXT STEP",
-                        onClick = {
-                            steps = steps.mapIndexed { i, s ->
-                                if (i == currentStepIndex) s.copy(status = StepStatus.Verified) else s
-                            }
-                            if (isLastStep) {
-                                onComplete()
-                            } else {
-                                currentStepIndex++
-                                furthestStepIndex = maxOf(furthestStepIndex, currentStepIndex)
-                                currentPattern = ProcedurePattern.Steps
-                                tempCapturedImage = null
-                            }
-                        },
-                        containerColor = if (isLastStep) AccentGreen else BgSurfaceRaised,
-                        modifier = Modifier.weight(1f).fillMaxHeight()
-                    )
+
+                RealWearBottomBar {
+                    when (currentPattern) {
+                        ProcedurePattern.Steps -> {
+                            RealWearButton(
+                                label = "PREVIOUS STEP",
+                                onClick = {
+                                    if (currentStepIndex > 0) {
+                                        currentStepIndex--
+                                        currentPattern = ProcedurePattern.Review
+                                    } else {
+                                        onBack()
+                                    }
+                                },
+                                modifier = Modifier.weight(1f).fillMaxHeight()
+                            )
+                            RealWearButton(
+                                label = "NEXT STEP",
+                                onClick = {
+                                    if (currentStep.status == StepStatus.Verified) {
+                                        if (currentStepIndex < steps.size - 1) {
+                                            currentStepIndex++
+                                            currentPattern = ProcedurePattern.Steps
+                                        }
+                                    } else {
+                                        currentPattern = ProcedurePattern.Capture
+                                    }
+                                },
+                                modifier = Modifier.weight(1f).fillMaxHeight()
+                            )
+                        }
+                        ProcedurePattern.Review -> {
+                            RealWearButton(
+                                label = "BACK TO STEPS",
+                                onClick = {
+                                    currentPattern = ProcedurePattern.Steps
+                                },
+                                modifier = Modifier.weight(1f).fillMaxHeight()
+                            )
+                            val isLastStep = currentStepIndex == steps.size - 1
+                            RealWearButton(
+                                label = if (isLastStep) "COMPLETE JOB" else "NEXT STEP",
+                                onClick = {
+                                    steps = steps.mapIndexed { i, s ->
+                                        if (i == currentStepIndex) s.copy(status = StepStatus.Verified) else s
+                                    }
+                                    if (isLastStep) {
+                                        onComplete()
+                                    } else {
+                                        currentStepIndex++
+                                        furthestStepIndex = maxOf(furthestStepIndex, currentStepIndex)
+                                        currentPattern = ProcedurePattern.Steps
+                                        tempCapturedImage = null
+                                    }
+                                },
+                                containerColor = if (isLastStep) AccentGreen else BgSurfaceRaised,
+                                modifier = Modifier.weight(1f).fillMaxHeight()
+                            )
+                        }
+                        else -> {}
+                    }
                 }
             }
         }
@@ -371,8 +391,8 @@ fun CameraPreview(
     AndroidView(
         factory = { ctx ->
             val previewView = PreviewView(ctx).apply {
-                // FIT_CENTER ensures the full native field of view (top to bottom, left to right) is visible without cropping/zooming
-                scaleType = PreviewView.ScaleType.FIT_CENTER
+                // FILL_CENTER fills the entire screen area under the transparent top and bottom bars
+                scaleType = PreviewView.ScaleType.FILL_CENTER
                 // COMPATIBLE mode (TextureView) handles Compose Z-order better for overlays
                 implementationMode = PreviewView.ImplementationMode.COMPATIBLE
             }
@@ -392,9 +412,9 @@ fun CameraPreview(
 
                     // Use ViewPort & UseCaseGroup so CameraX forces Preview and ImageCapture to have identical cropping and FOV
                     val viewPort = previewView.viewPort ?: ViewPort.Builder(
-                        Rational(4, 3),
+                        Rational(16, 9),
                         previewView.display?.rotation ?: Surface.ROTATION_0
-                    ).setScaleType(ViewPort.FIT).build()
+                    ).setScaleType(ViewPort.FILL_CENTER).build()
 
                     val useCaseGroup = UseCaseGroup.Builder()
                         .addUseCase(preview)
