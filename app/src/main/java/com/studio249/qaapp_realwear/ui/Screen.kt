@@ -21,4 +21,5 @@ sealed class Screen(val route: String) {
     }
 
     object TestCam : Screen("test_cam")
+    object TestResult : Screen("test_result")
 }

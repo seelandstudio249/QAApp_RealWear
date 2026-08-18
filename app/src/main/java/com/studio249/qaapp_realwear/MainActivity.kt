@@ -28,6 +28,7 @@ import com.studio249.qaapp_realwear.ui.screens.ProceduresScreen
 import com.studio249.qaapp_realwear.ui.screens.InProgressScreen
 import com.studio249.qaapp_realwear.ui.screens.InVerifyScreen
 import com.studio249.qaapp_realwear.ui.screens.TestCamScreen
+import com.studio249.qaapp_realwear.ui.screens.TestResultScreen
 import com.studio249.qaapp_realwear.ui.theme.QAApp_RealwearTheme
 
 class MainActivity : ComponentActivity() {
@@ -77,6 +78,7 @@ fun MainNavigation() {
             navController = navController,
             startDestination = Screen.Login.route,
             //startDestination = Screen.TestCam.route,
+            //startDestination = Screen.TestResult.route,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Login.route) {
@@ -166,6 +168,11 @@ fun MainNavigation() {
 
             composable(Screen.TestCam.route) {
                 TestCamScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable(Screen. TestResult.route) {
+                TestResultScreen(
                     onBack = { navController.popBackStack() }
                 )
             }
