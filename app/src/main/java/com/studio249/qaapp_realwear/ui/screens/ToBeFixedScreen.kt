@@ -90,7 +90,7 @@ fun ToBeFixedScreen(
     val currentCapturedImage = currentStep.capturedImage
 
     if (isCameraActive) {
-        Box(modifier = Modifier.fillMaxSize().background(Color.Black).statusBarsPadding()) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
             CameraPreview(
                 imageCapture = imageCapture,
                 resolutionSelector = resolutionSelector,
@@ -197,7 +197,7 @@ fun ToBeFixedScreen(
             }
         }
     } else {
-        Column(modifier = Modifier.fillMaxSize().background(BgPrimary).statusBarsPadding()) {
+        Column(modifier = Modifier.fillMaxSize().background(BgPrimary)) {
             RealWearTopBar(
                 title = "STEP ${currentStepIndex + 1} - ${currentStep.title}",
                 rightContent = {

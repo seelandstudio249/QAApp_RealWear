@@ -134,8 +134,7 @@ fun NewInspectionsScreen(
 
     Box(modifier = Modifier
         .fillMaxSize()
-        .background(BgPrimary)
-        .statusBarsPadding()) {
+        .background(BgPrimary)) {
         if (currentPattern == InspectionPattern.Capture) {
             CameraPreview(
                 imageCapture = imageCapture,

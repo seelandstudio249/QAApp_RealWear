@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.studio249.qaapp_realwear.data.SeedDataRepository
 import com.studio249.qaapp_realwear.model.Step
+import com.studio249.qaapp_realwear.ui.components.RealWearBottomBar
 import com.studio249.qaapp_realwear.ui.components.RealWearButton
 import com.studio249.qaapp_realwear.ui.components.RealWearTopBar
 import com.studio249.qaapp_realwear.ui.theme.*
@@ -52,7 +53,7 @@ fun ReinspectionScreen(
 
     val currentStep = steps[currentStepIndex]
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().background(BgPrimary)) {
         RealWearTopBar(
             title = "STEP ${currentStepIndex + 1} - ${currentStep.title}",
             rightContent = {
@@ -64,7 +65,7 @@ fun ReinspectionScreen(
             }
         )
 
-        Box(modifier = Modifier.fillMaxWidth().weight(0.76f)) {
+        Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
             AsyncImage(
                 model = currentStep.stepImage,
                 contentDescription = null,
@@ -73,15 +74,7 @@ fun ReinspectionScreen(
             )
         }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(0.14f)
-                .background(BgSurface)
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        RealWearBottomBar {
             RealWearButton(
                 label = "DEFECTS NOT FIXED",
                 onClick = {
@@ -92,7 +85,7 @@ fun ReinspectionScreen(
                     }
                 },
                 containerColor = AccentRed,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).fillMaxHeight()
             )
             RealWearButton(
                 label = "DEFECTS FIXED",
@@ -104,7 +97,7 @@ fun ReinspectionScreen(
                     }
                 },
                 containerColor = AccentGreen,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).fillMaxHeight()
             )
         }
     }
