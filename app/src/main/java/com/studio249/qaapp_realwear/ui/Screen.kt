@@ -12,12 +12,12 @@ sealed class Screen(val route: String) {
         fun createRoute(jobId: String) = "procedures/$jobId"
     }
 
-    object InProgress : Screen("in_progress/{jobId}") {
-        fun createRoute(jobId: String) = "in_progress/$jobId"
+    object ToBeFixed : Screen("to_be_fixed/{jobId}") {
+        fun createRoute(jobId: String) = "to_be_fixed/$jobId"
     }
 
-    object InVerify : Screen("in_verify/{jobId}") {
-        fun createRoute(jobId: String) = "in_verify/$jobId"
+    object Reinspection : Screen("reinspection/{jobId}") {
+        fun createRoute(jobId: String) = "reinspection/$jobId"
     }
 
     object TestCam : Screen("test_cam")

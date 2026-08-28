@@ -35,15 +35,15 @@ fun JobHubScreen(
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 RealWearTile(
-                    label = "OUTSTANDING",
+                    label = "NEW INSPECTIONS",
                     icon = { Icon(Icons.Default.Assignment, contentDescription = null, modifier = Modifier.size(84.dp), tint = TextPrimary) },
-                    onClick = { onTabSelected("Outstanding") },
+                    onClick = { onTabSelected("NewInspections") },
                     modifier = Modifier.weight(1f).fillMaxHeight()
                 )
                 RealWearTile(
-                    label = "IN PROGRESS",
+                    label = "TO BE FIXED",
                     icon = { Icon(Icons.Default.Build, contentDescription = null, modifier = Modifier.size(84.dp), tint = TextPrimary) },
-                    onClick = { onTabSelected("InProgress") },
+                    onClick = { onTabSelected("ToBeFixed") },
                     modifier = Modifier.weight(1f).fillMaxHeight()
                 )
             }
@@ -52,9 +52,9 @@ fun JobHubScreen(
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 RealWearTile(
-                    label = "IN VERIFY",
+                    label = "REINSPECTION",
                     icon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(84.dp), tint = TextPrimary) },
-                    onClick = { onTabSelected("InVerify") },
+                    onClick = { onTabSelected("Reinspection") },
                     modifier = Modifier.weight(1f).fillMaxHeight()
                 )
                 RealWearTile(

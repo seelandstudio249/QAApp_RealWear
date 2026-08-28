@@ -1,6 +1,5 @@
 package com.studio249.qaapp_realwear.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,16 +17,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.studio249.qaapp_realwear.data.SeedDataRepository
 import com.studio249.qaapp_realwear.model.Job
-import com.studio249.qaapp_realwear.ui.components.RealWearBottomBar
 import com.studio249.qaapp_realwear.ui.components.RealWearButton
 import com.studio249.qaapp_realwear.ui.components.RealWearTopBar
 import com.studio249.qaapp_realwear.ui.theme.AccentBlue
-import com.studio249.qaapp_realwear.ui.theme.BgSurface
 import com.studio249.qaapp_realwear.ui.theme.DividerColor
 import com.studio249.qaapp_realwear.ui.theme.QAApp_RealwearTheme
 import com.studio249.qaapp_realwear.ui.theme.TextPrimary
 import com.studio249.qaapp_realwear.ui.theme.TextSecondary
-import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
 @Composable
@@ -44,23 +40,28 @@ fun JobListScreen(
     
     val pageSize = 5
     val listState = rememberLazyListState()
-    val scope = rememberCoroutineScope()
+
+    val displayTitle = when (type) {
+        "NewInspections" -> "NEW INSPECTIONS"
+        "ToBeFixed" -> "TO BE FIXED"
+        "Reinspection" -> "REINSPECTION"
+        else -> type.uppercase()
+    }
 
     LaunchedEffect(type) {
         isLoading = true
         val result = when (type) {
-            "Outstanding" -> repository.getOutstandingList()
-            "InProgress" -> repository.getInProgressList()
-            "InVerify" -> repository.getInVerifyList()
+            "NewInspections", "Outstanding" -> repository.getNewInspectionsList()
+            "ToBeFixed", "InProgress" -> repository.getToBeFixedList()
+            "Reinspection", "InVerify" -> repository.getReinspectionList()
             "Completed" -> repository.getCompletedList()
-            else -> repository.getOutstandingList()
+            else -> repository.getNewInspectionsList()
         }
         allJobs = result.getOrDefault(emptyList()).sortedByDescending { it.createdAt }
         displayedJobs = allJobs.take(pageSize)
         isLoading = false
     }
 
-    // Lazy load logic
     val shouldLoadMore = remember {
         derivedStateOf {
             val lastVisibleItemIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
@@ -71,7 +72,7 @@ fun JobListScreen(
     LaunchedEffect(shouldLoadMore.value) {
         if (shouldLoadMore.value && !isPaging) {
             isPaging = true
-            kotlinx.coroutines.delay(800) // Simulate network delay for paging
+            kotlinx.coroutines.delay(800)
             val currentSize = displayedJobs.size
             val nextSize = (currentSize + pageSize).coerceAtMost(allJobs.size)
             displayedJobs = allJobs.take(nextSize)
@@ -81,9 +82,8 @@ fun JobListScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         RealWearTopBar(
-            title = "JOB - ${type.uppercase()}",
+            title = "JOB - $displayTitle",
             rightContent = {
-                // Removed height(50.dp) to prevent vertical clipping
                 RealWearButton(
                     label = "PREVIOUS PAGE",
                     onClick = onBack
@@ -94,7 +94,7 @@ fun JobListScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.76f)
+                .weight(1f)
         ) {
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = AccentBlue)
@@ -125,11 +125,6 @@ fun JobListScreen(
                 }
             }
         }
-
-        // Restored bottom bar to keep layout proportions
-       // RealWearBottomBar {
-            // Reserved for future actions
-       // }
     }
 }
 
@@ -140,7 +135,7 @@ fun JobRow(job: Job, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(72.dp) // ~12% of content area
+            .height(72.dp)
             .clickable { onClick() }
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -165,7 +160,7 @@ fun JobRow(job: Job, onClick: () -> Unit) {
 fun JobListScreenPreview() {
     QAApp_RealwearTheme {
         JobListScreen(
-            type = "Outstanding",
+            type = "NewInspections",
             onJobSelected = {},
             onBack = {}
         )

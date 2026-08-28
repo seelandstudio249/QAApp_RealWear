@@ -25,8 +25,8 @@ import com.studio249.qaapp_realwear.ui.screens.JobHubScreen
 import com.studio249.qaapp_realwear.ui.screens.JobListScreen
 import com.studio249.qaapp_realwear.ui.screens.LoginScreen
 import com.studio249.qaapp_realwear.ui.screens.ProceduresScreen
-import com.studio249.qaapp_realwear.ui.screens.InProgressScreen
-import com.studio249.qaapp_realwear.ui.screens.InVerifyScreen
+import com.studio249.qaapp_realwear.ui.screens.ToBeFixedScreen
+import com.studio249.qaapp_realwear.ui.screens.ReinspectionScreen
 import com.studio249.qaapp_realwear.ui.screens.TestCamScreen
 import com.studio249.qaapp_realwear.ui.screens.TestResultScreen
 import com.studio249.qaapp_realwear.ui.theme.QAApp_RealwearTheme
@@ -77,8 +77,6 @@ fun MainNavigation() {
         NavHost(
             navController = navController,
             startDestination = Screen.Login.route,
-            //startDestination = Screen.TestCam.route,
-            //startDestination = Screen.TestResult.route,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Login.route) {
@@ -103,14 +101,14 @@ fun MainNavigation() {
                 route = Screen.JobList.route,
                 arguments = listOf(navArgument("type") { type = NavType.StringType })
             ) { backStackEntry ->
-                val type = backStackEntry.arguments?.getString("type") ?: "Outstanding"
+                val type = backStackEntry.arguments?.getString("type") ?: "NewInspections"
                 JobListScreen(
                     type = type,
                     onJobSelected = { jobId ->
                         when (type) {
-                            "Outstanding" -> navController.navigate(Screen.Procedures.createRoute(jobId))
-                            "InProgress" -> navController.navigate(Screen.InProgress.createRoute(jobId))
-                            "InVerify" -> navController.navigate(Screen.InVerify.createRoute(jobId))
+                            "NewInspections" -> navController.navigate(Screen.Procedures.createRoute(jobId))
+                            "ToBeFixed" -> navController.navigate(Screen.ToBeFixed.createRoute(jobId))
+                            "Reinspection" -> navController.navigate(Screen.Reinspection.createRoute(jobId))
                             "Completed" -> { /* Just view? maybe Procedures too */ }
                         }
                     },
@@ -135,11 +133,11 @@ fun MainNavigation() {
             }
 
             composable(
-                route = Screen.InProgress.route,
+                route = Screen.ToBeFixed.route,
                 arguments = listOf(navArgument("jobId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val jobId = backStackEntry.arguments?.getString("jobId") ?: ""
-                InProgressScreen(
+                ToBeFixedScreen(
                     jobId = jobId,
                     onComplete = {
                         navController.navigate(Screen.JobHub.route) {
@@ -151,11 +149,11 @@ fun MainNavigation() {
             }
 
             composable(
-                route = Screen.InVerify.route,
+                route = Screen.Reinspection.route,
                 arguments = listOf(navArgument("jobId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val jobId = backStackEntry.arguments?.getString("jobId") ?: ""
-                InVerifyScreen(
+                ReinspectionScreen(
                     jobId = jobId,
                     onComplete = {
                         navController.navigate(Screen.JobHub.route) {

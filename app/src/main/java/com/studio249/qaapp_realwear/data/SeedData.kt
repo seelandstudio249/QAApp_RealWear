@@ -3,7 +3,6 @@ package com.studio249.qaapp_realwear.data
 import com.studio249.qaapp_realwear.model.Job
 import com.studio249.qaapp_realwear.model.JobStatus
 import com.studio249.qaapp_realwear.model.Step
-import com.studio249.qaapp_realwear.model.StepStatus
 import java.time.LocalDateTime
 
 object SeedData {
@@ -18,32 +17,32 @@ object SeedData {
         Step(2, "Inspect Tire Pressure", "https://example.com/step3.jpg")
     )
 
-    val outstandingJobs = (1..12).map { i ->
+    val newInspectionsJobs = (1..12).map { i ->
         Job(
             id = "OUT-$i",
-            title = "Outstanding Task $i",
+            title = "New Inspection Task $i",
             createdAt = LocalDateTime.now().minusDays(i.toLong()),
-            status = JobStatus.Outstanding,
+            status = JobStatus.NewInspections,
             steps = createSteps("OUT-$i")
         )
     }
 
-    val inProgressJobs = (1..12).map { i ->
+    val toBeFixedJobs = (1..12).map { i ->
         Job(
             id = "PROG-$i",
-            title = "In Progress Task $i",
+            title = "To Be Fixed Task $i",
             createdAt = LocalDateTime.now().minusDays(i.toLong()),
-            status = JobStatus.InProgress,
+            status = JobStatus.ToBeFixed,
             steps = createSteps("PROG-$i")
         )
     }
 
-    val inVerifyJobs = (1..12).map { i ->
+    val reinspectionJobs = (1..12).map { i ->
         Job(
             id = "VER-$i",
-            title = "In Verify Task $i",
+            title = "Reinspection Task $i",
             createdAt = LocalDateTime.now().minusDays(i.toLong()),
-            status = JobStatus.InVerify,
+            status = JobStatus.Reinspection,
             steps = createSteps("VER-$i")
         )
     }

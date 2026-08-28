@@ -3,7 +3,7 @@ package com.studio249.qaapp_realwear.model
 import java.time.LocalDateTime
 
 enum class JobStatus {
-    Outstanding, InProgress, InVerify, Completed
+    NewInspections, ToBeFixed, Reinspection, Completed
 }
 
 data class Job(

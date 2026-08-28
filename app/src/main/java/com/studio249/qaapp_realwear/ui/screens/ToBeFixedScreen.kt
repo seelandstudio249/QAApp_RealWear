@@ -35,7 +35,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 @Composable
-fun InProgressScreen(
+fun ToBeFixedScreen(
     jobId: String,
     onComplete: () -> Unit,
     onBack: () -> Unit
@@ -47,7 +47,6 @@ fun InProgressScreen(
     var isLoading by remember { mutableStateOf(true) }
     var isCameraActive by remember { mutableStateOf(false) }
 
-    // ResolutionSelector and CameraX configuration matching ProceduresScreen
     val resolutionSelector = remember {
         ResolutionSelector.Builder()
             .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
@@ -91,16 +90,13 @@ fun InProgressScreen(
     val currentCapturedImage = currentStep.capturedImage
 
     if (isCameraActive) {
-        // Full-Screen Camera Overlay Layout (matching ProceduresScreen Capture pattern)
         Box(modifier = Modifier.fillMaxSize().background(Color.Black).statusBarsPadding()) {
-            // Full-screen camera preview layer
             CameraPreview(
                 imageCapture = imageCapture,
                 resolutionSelector = resolutionSelector,
                 modifier = Modifier.fillMaxSize()
             )
 
-            // Overlay captured photo across full screen once captured
             if (currentCapturedImage != null) {
                 AsyncImage(
                     model = currentCapturedImage,
@@ -110,7 +106,6 @@ fun InProgressScreen(
                 )
             }
 
-            // Square Viewfinder Overlay - Centered in the screen area
             Box(
                 modifier = Modifier
                     .fillMaxHeight(0.75f)
@@ -131,7 +126,6 @@ fun InProgressScreen(
                 )
             }
 
-            // Floating Top Bar Overlay (Translucent during live camera preview)
             RealWearTopBar(
                 title = "STEP ${currentStepIndex + 1} - ${currentStep.title}",
                 modifier = Modifier.align(Alignment.TopCenter),
@@ -145,7 +139,6 @@ fun InProgressScreen(
                 }
             )
 
-            // Floating Bottom Bar Overlay (Translucent during live camera preview)
             RealWearBottomBar(
                 modifier = Modifier.align(Alignment.BottomCenter),
                 backgroundColor = Color.Black.copy(alpha = 0.40f)
@@ -180,7 +173,7 @@ fun InProgressScreen(
                                     }
                                 },
                                 onError = { exception ->
-                                    Log.e("InProgressCamera", "Capture failed", exception)
+                                    Log.e("ToBeFixedCamera", "Capture failed", exception)
                                 }
                             )
                         },
@@ -204,7 +197,6 @@ fun InProgressScreen(
             }
         }
     } else {
-        // Standard layout when camera is not active
         Column(modifier = Modifier.fillMaxSize().background(BgPrimary).statusBarsPadding()) {
             RealWearTopBar(
                 title = "STEP ${currentStepIndex + 1} - ${currentStep.title}",
@@ -289,13 +281,12 @@ private fun takePhoto(
 
 @Preview(showBackground = true, widthDp = 1280, heightDp = 720)
 @Composable
-fun InProgressScreenPreview() {
+fun ToBeFixedScreenPreview() {
     QAApp_RealwearTheme {
-        InProgressScreen(
+        ToBeFixedScreen(
             jobId = "PROG-1",
             onComplete = {},
             onBack = {}
         )
     }
 }
-

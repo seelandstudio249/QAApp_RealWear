@@ -19,7 +19,7 @@ import com.studio249.qaapp_realwear.ui.components.RealWearTopBar
 import com.studio249.qaapp_realwear.ui.theme.*
 
 @Composable
-fun InVerifyScreen(
+fun ReinspectionScreen(
     jobId: String,
     onComplete: () -> Unit,
     onBack: () -> Unit
@@ -85,7 +85,6 @@ fun InVerifyScreen(
             RealWearButton(
                 label = "DEFECTS NOT FIXED",
                 onClick = {
-                    // Simulate API call PostUpdateInVerifyJob(index, "NotFixed")
                     if (currentStepIndex < steps.size - 1) {
                         currentStepIndex++
                     } else {
@@ -98,7 +97,6 @@ fun InVerifyScreen(
             RealWearButton(
                 label = "DEFECTS FIXED",
                 onClick = {
-                    // Simulate API call PostUpdateInVerifyJob(index, "Fixed")
                     if (currentStepIndex < steps.size - 1) {
                         currentStepIndex++
                     } else {
@@ -114,9 +112,9 @@ fun InVerifyScreen(
 
 @Preview(showBackground = true, widthDp = 1280, heightDp = 720)
 @Composable
-fun InVerifyScreenPreview() {
+fun ReinspectionScreenPreview() {
     QAApp_RealwearTheme {
-        InVerifyScreen(
+        ReinspectionScreen(
             jobId = "VER-1",
             onComplete = {},
             onBack = {}

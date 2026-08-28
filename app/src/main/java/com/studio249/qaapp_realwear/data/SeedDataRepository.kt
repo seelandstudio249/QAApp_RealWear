@@ -17,19 +17,19 @@ class SeedDataRepository : Repository {
         }
     }
 
-    override suspend fun getOutstandingList(): Result<List<Job>> {
+    override suspend fun getNewInspectionsList(): Result<List<Job>> {
         delay(simulateDelay)
-        return Result.success(SeedData.outstandingJobs)
+        return Result.success(SeedData.newInspectionsJobs)
     }
 
-    override suspend fun getInProgressList(): Result<List<Job>> {
+    override suspend fun getToBeFixedList(): Result<List<Job>> {
         delay(simulateDelay)
-        return Result.success(SeedData.inProgressJobs)
+        return Result.success(SeedData.toBeFixedJobs)
     }
 
-    override suspend fun getInVerifyList(): Result<List<Job>> {
+    override suspend fun getReinspectionList(): Result<List<Job>> {
         delay(simulateDelay)
-        return Result.success(SeedData.inVerifyJobs)
+        return Result.success(SeedData.reinspectionJobs)
     }
 
     override suspend fun getCompletedList(): Result<List<Job>> {
@@ -39,17 +39,17 @@ class SeedDataRepository : Repository {
 
     override suspend fun getProcedures(jobId: String): Result<List<Step>> {
         delay(simulateDelay)
-        return Result.success(SeedData.outstandingJobs.find { it.id == jobId }?.steps ?: emptyList())
+        return Result.success(SeedData.newInspectionsJobs.find { it.id == jobId }?.steps ?: emptyList())
     }
 
-    override suspend fun getInProgressProcedures(jobId: String): Result<List<Step>> {
+    override suspend fun getToBeFixedProcedures(jobId: String): Result<List<Step>> {
         delay(simulateDelay)
-        return Result.success(SeedData.inProgressJobs.find { it.id == jobId }?.steps ?: emptyList())
+        return Result.success(SeedData.toBeFixedJobs.find { it.id == jobId }?.steps ?: emptyList())
     }
 
-    override suspend fun getInVerifyProcedures(jobId: String): Result<List<Step>> {
+    override suspend fun getReinspectionProcedures(jobId: String): Result<List<Step>> {
         delay(simulateDelay)
-        return Result.success(SeedData.inVerifyJobs.find { it.id == jobId }?.steps ?: emptyList())
+        return Result.success(SeedData.reinspectionJobs.find { it.id == jobId }?.steps ?: emptyList())
     }
 
     override suspend fun postVerifyImage(image: File): Result<String> {
@@ -62,12 +62,12 @@ class SeedDataRepository : Repository {
         return Result.success(Unit)
     }
 
-    override suspend fun postUpdateInProgressJob(image: File, stepIndex: Int, status: String): Result<Unit> {
+    override suspend fun postUpdateToBeFixedJob(image: File, stepIndex: Int, status: String): Result<Unit> {
         delay(simulateDelay)
         return Result.success(Unit)
     }
 
-    override suspend fun postUpdateInVerifyJob(stepIndex: Int, status: String): Result<Unit> {
+    override suspend fun postUpdateReinspectionJob(stepIndex: Int, status: String): Result<Unit> {
         delay(simulateDelay)
         return Result.success(Unit)
     }
