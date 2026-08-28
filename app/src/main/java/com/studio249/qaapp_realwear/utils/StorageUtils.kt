@@ -21,18 +21,6 @@ object StorageUtils {
         return taskDir
     }
 
-    fun getVPFolder(): File {
-        // Saving to Public Documents folder: Documents/QAApp/VP/
-        val root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-        val appDir = File(root, APP_FOLDER)
-        val vpDir = File(appDir, "VP")
-        
-        if (!vpDir.exists()) {
-            vpDir.mkdirs()
-        }
-        return vpDir
-    }
-
     fun generateFileName(taskId: String): String {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         return "${taskId}_$timestamp.jpg"

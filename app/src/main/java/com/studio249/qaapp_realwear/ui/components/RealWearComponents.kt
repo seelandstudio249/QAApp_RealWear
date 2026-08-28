@@ -9,7 +9,7 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -84,8 +84,7 @@ fun RealWearTopBar(
         modifier = modifier
             .fillMaxWidth()
             .height(50.dp)
-            .background(backgroundColor)
-            .padding(horizontal = 16.dp),
+            .background(backgroundColor),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -111,8 +110,7 @@ fun RealWearBottomBar(
         modifier = modifier
             .fillMaxWidth()
             .height(50.dp)
-            .background(backgroundColor)
-            .padding(8.dp),
+            .background(backgroundColor),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         content = content
@@ -187,7 +185,7 @@ fun ComponentsPreview() {
             Row(modifier = Modifier.height(200.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 RealWearTile(
                     label = "TILE EXAMPLE",
-                    icon = { Icon(Icons.Default.Assignment, contentDescription = null, modifier = Modifier.size(48.dp), tint = TextPrimary) },
+                    icon = { Icon(Icons.AutoMirrored.Filled.Assignment, contentDescription = null, modifier = Modifier.size(48.dp), tint = TextPrimary) },
                     onClick = {},
                     modifier = Modifier.weight(1f).fillMaxHeight()
                 )

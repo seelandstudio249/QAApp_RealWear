@@ -24,7 +24,7 @@ import com.studio249.qaapp_realwear.ui.Screen
 import com.studio249.qaapp_realwear.ui.screens.JobHubScreen
 import com.studio249.qaapp_realwear.ui.screens.JobListScreen
 import com.studio249.qaapp_realwear.ui.screens.LoginScreen
-import com.studio249.qaapp_realwear.ui.screens.ProceduresScreen
+import com.studio249.qaapp_realwear.ui.screens.NewInspectionsScreen
 import com.studio249.qaapp_realwear.ui.screens.ToBeFixedScreen
 import com.studio249.qaapp_realwear.ui.screens.ReinspectionScreen
 import com.studio249.qaapp_realwear.ui.screens.TestCamScreen
@@ -106,10 +106,10 @@ fun MainNavigation() {
                     type = type,
                     onJobSelected = { jobId ->
                         when (type) {
-                            "NewInspections" -> navController.navigate(Screen.Procedures.createRoute(jobId))
+                            "NewInspections" -> navController.navigate(Screen.NewInspections.createRoute(jobId))
                             "ToBeFixed" -> navController.navigate(Screen.ToBeFixed.createRoute(jobId))
                             "Reinspection" -> navController.navigate(Screen.Reinspection.createRoute(jobId))
-                            "Completed" -> { /* Just view? maybe Procedures too */ }
+                            "Completed" -> { /* Just view? maybe NewInspections too */ }
                         }
                     },
                     onBack = { navController.popBackStack() }
@@ -117,11 +117,11 @@ fun MainNavigation() {
             }
 
             composable(
-                route = Screen.Procedures.route,
+                route = Screen.NewInspections.route,
                 arguments = listOf(navArgument("jobId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val jobId = backStackEntry.arguments?.getString("jobId") ?: ""
-                ProceduresScreen(
+                NewInspectionsScreen(
                     jobId = jobId,
                     onComplete = {
                         navController.navigate(Screen.JobHub.route) {

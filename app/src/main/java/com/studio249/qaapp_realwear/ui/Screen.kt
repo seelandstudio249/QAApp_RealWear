@@ -8,8 +8,8 @@ sealed class Screen(val route: String) {
         fun createRoute(type: String) = "job_list/$type"
     }
 
-    object Procedures : Screen("procedures/{jobId}") {
-        fun createRoute(jobId: String) = "procedures/$jobId"
+    object NewInspections : Screen("new_inspections/{jobId}") {
+        fun createRoute(jobId: String) = "new_inspections/$jobId"
     }
 
     object ToBeFixed : Screen("to_be_fixed/{jobId}") {

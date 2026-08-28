@@ -2,7 +2,7 @@ package com.studio249.qaapp_realwear.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Search
@@ -36,7 +36,7 @@ fun JobHubScreen(
             ) {
                 RealWearTile(
                     label = "NEW INSPECTIONS",
-                    icon = { Icon(Icons.Default.Assignment, contentDescription = null, modifier = Modifier.size(84.dp), tint = TextPrimary) },
+                    icon = { Icon(Icons.AutoMirrored.Filled.Assignment, contentDescription = null, modifier = Modifier.size(84.dp), tint = TextPrimary) },
                     onClick = { onTabSelected("NewInspections") },
                     modifier = Modifier.weight(1f).fillMaxHeight()
                 )

@@ -2,6 +2,7 @@ package com.studio249.qaapp_realwear.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 
 class SessionManager(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("qa_prefs", Context.MODE_PRIVATE)
@@ -15,10 +16,10 @@ class SessionManager(context: Context) {
     }
 
     fun setToken(token: String) {
-        prefs.edit().putString(KEY_TOKEN, token).apply()
+        prefs.edit { putString(KEY_TOKEN, token) }
     }
 
     fun clearToken() {
-        prefs.edit().remove(KEY_TOKEN).apply()
+        prefs.edit { remove(KEY_TOKEN) }
     }
 }
