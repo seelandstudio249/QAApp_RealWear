@@ -87,11 +87,11 @@ fun parseDetections(jsonString: String): List<Detection> {
 /**
  * TestResultScreen
  *
- * Follows the ProceduresScreen Review pattern:
+ * Follows the NewInspection Review pattern:
  * - Top Bar: RealWearTopBar with defect status badge
  * - Main 70/30 Split:
- *    - Left 70%: Captured image (Layer 1) with Bounding Box and Label overlay (Layer 2)
- *    - Right 30%: Side bar with Detect List and AI detection results
+ *    - Left 70%: Captured image (Layer 1) with Bounding Box and Label overlay with AI detection results(Layer 2)
+ *    - Right 30%: Side bar with Defect Correction List
  * - Bottom Bar: RealWearBottomBar with navigation/action buttons
  */
 @Composable
