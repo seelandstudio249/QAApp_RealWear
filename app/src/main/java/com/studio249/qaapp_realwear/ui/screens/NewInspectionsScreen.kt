@@ -48,6 +48,7 @@ import coil.compose.AsyncImage
 import com.studio249.qaapp_realwear.data.SeedDataRepository
 import com.studio249.qaapp_realwear.model.Step
 import com.studio249.qaapp_realwear.model.StepStatus
+import com.studio249.qaapp_realwear.ui.components.CameraFrameComponent
 import com.studio249.qaapp_realwear.ui.components.RealWearBottomBar
 import com.studio249.qaapp_realwear.ui.components.RealWearButton
 import com.studio249.qaapp_realwear.ui.components.RealWearTopBar
@@ -151,16 +152,13 @@ fun NewInspectionsScreen(
                 )
             }
 
-            Box(
+            CameraFrameComponent(
                 modifier = Modifier
                     .fillMaxHeight(0.75f)
                     .aspectRatio(1f)
-                    .align(Alignment.Center)
-                    .border(
-                        2.dp,
-                        if (tempCapturedImage != null) AccentGreen else AccentBlue,
-                        RoundedCornerShape(8.dp)
-                    )
+                    .align(Alignment.Center),
+                frameColor = if (tempCapturedImage != null) AccentGreen else AccentBlue,
+                showAnimation = tempCapturedImage == null
             )
 
             if (tempCapturedImage != null) {

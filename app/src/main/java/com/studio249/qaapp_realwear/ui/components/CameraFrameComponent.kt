@@ -36,7 +36,8 @@ fun CameraFrameComponent(
     frameColor: Color = AccentBlue,
     strokeWidth: Dp = 3.dp,
     cornerLength: Dp = 40.dp,
-    animationDurationMillis: Int = 2000
+    animationDurationMillis: Int = 2000,
+    showAnimation: Boolean = true
 ) {
     Box(
         modifier = modifier
@@ -61,32 +62,34 @@ fun CameraFrameComponent(
                 drawLine(color = frameColor, start = Offset(size.width, size.height), end = Offset(size.width, size.height - cornerLengthPx), strokeWidth = strokeWidthPx)
             }
     ) {
-        val infiniteTransition = rememberInfiniteTransition(label = "scanning")
-        val scanPosition by infiniteTransition.animateFloat(
-            initialValue = 0f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(animationDurationMillis, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "scanLine"
-        )
+        if (showAnimation) {
+            val infiniteTransition = rememberInfiniteTransition(label = "scanning")
+            val scanPosition by infiniteTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(animationDurationMillis, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "scanLine"
+            )
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.02f)
-                .align(BiasAlignment(0f, (scanPosition * 2) - 1f))
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            frameColor,
-                            Color.Transparent
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.02f)
+                    .align(BiasAlignment(0f, (scanPosition * 2) - 1f))
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                frameColor,
+                                Color.Transparent
+                            )
                         )
                     )
-                )
-        )
+            )
+        }
     }
 }
 

@@ -7,7 +7,6 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -25,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.studio249.qaapp_realwear.data.SeedDataRepository
 import com.studio249.qaapp_realwear.model.Step
+import com.studio249.qaapp_realwear.ui.components.CameraFrameComponent
 import com.studio249.qaapp_realwear.ui.components.RealWearBottomBar
 import com.studio249.qaapp_realwear.ui.components.RealWearButton
 import com.studio249.qaapp_realwear.ui.components.RealWearTopBar
@@ -106,12 +106,13 @@ fun ToBeFixedScreen(
                 )
             }
 
-            Box(
+            CameraFrameComponent(
                 modifier = Modifier
                     .fillMaxHeight(0.75f)
                     .aspectRatio(1f)
-                    .align(Alignment.Center)
-                    .border(2.dp, if (currentCapturedImage != null) AccentGreen else AccentBlue, RoundedCornerShape(8.dp))
+                    .align(Alignment.Center),
+                frameColor = if (currentCapturedImage != null) AccentGreen else AccentBlue,
+                showAnimation = currentCapturedImage == null
             )
 
             if (currentCapturedImage != null) {
@@ -181,7 +182,7 @@ fun ToBeFixedScreen(
                     )
                 }
                 RealWearButton(
-                    label = "VERIFY CAPTURE",
+                    label = "NEXT STEP",
                     onClick = {
                         if (currentStepIndex < steps.size - 1) {
                             currentStepIndex++
