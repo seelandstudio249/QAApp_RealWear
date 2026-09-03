@@ -9,7 +9,6 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -41,6 +40,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
+import com.studio249.qaapp_realwear.ui.components.CameraFrameComponent
 import com.studio249.qaapp_realwear.ui.components.RealWearButton
 import com.studio249.qaapp_realwear.ui.components.RealWearTopBar
 import com.studio249.qaapp_realwear.ui.theme.AccentBlue
@@ -48,6 +48,7 @@ import com.studio249.qaapp_realwear.ui.theme.BgPrimary
 import com.studio249.qaapp_realwear.ui.theme.QAApp_RealwearTheme
 import kotlinx.coroutines.delay
 import java.util.concurrent.Executors
+import kotlin.time.Duration.Companion.milliseconds
 
 enum class LoginState {
     Scanning, LoggingIn, Complete, Failed
@@ -70,7 +71,7 @@ fun LoginScreen(
                 ".." -> "..."
                 else -> ""
             }
-            delay(400)
+            delay(400.milliseconds)
         }
     }
 
@@ -100,11 +101,10 @@ fun LoginScreen(
                 )
 
                 // Visual Scanning Frame Overlay
-                Box(
+                CameraFrameComponent(
                     modifier = Modifier
                         .fillMaxHeight(0.75f)
                         .aspectRatio(1f)
-                        .border(2.dp, AccentBlue.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
                 )
             } else if (loginState == LoginState.LoggingIn) {
                 Text(
@@ -119,7 +119,7 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .background(Color.Black.copy(alpha = 0.4f))
+                    //.background(Color.Black.copy(alpha = 0.4f))
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -149,11 +149,11 @@ fun LoginScreen(
         LaunchedEffect(loginState) {
             when (loginState) {
                 LoginState.LoggingIn -> {
-                    delay(1500)
+                    delay(1500.milliseconds)
                     loginState = LoginState.Complete
                 }
                 LoginState.Complete -> {
-                    delay(800) 
+                    delay(800.milliseconds)
                     currentOnLoginSuccess()
                 }
                 else -> {}
