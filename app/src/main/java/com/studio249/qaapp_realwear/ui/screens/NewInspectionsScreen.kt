@@ -191,7 +191,7 @@ fun NewInspectionsScreen(
                 backgroundColor = Color.Black.copy(alpha = 0.40f)
             ) {
                 RealWearButton(
-                    label = "BACK",
+                    label = "PREVIOUS STEP",
                     onClick = { currentPattern = InspectionPattern.Steps },
                     modifier = Modifier
                         .weight(1f)
@@ -364,7 +364,7 @@ fun NewInspectionsScreen(
                     when (currentPattern) {
                         InspectionPattern.Steps -> {
                             RealWearButton(
-                                label = "PREVIOUS STEP",
+                                label = if(currentStepIndex>0) "PREVIOUS STEP" else "PREVIOUS PAGE",
                                 onClick = {
                                     if (currentStepIndex > 0) {
                                         currentStepIndex--
@@ -397,7 +397,7 @@ fun NewInspectionsScreen(
 
                         InspectionPattern.Review -> {
                             RealWearButton(
-                                label = "BACK TO STEPS",
+                                label = "PREVIOUS STEP",
                                 onClick = {
                                     currentPattern = InspectionPattern.Steps
                                 },

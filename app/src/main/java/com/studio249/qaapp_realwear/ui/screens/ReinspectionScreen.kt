@@ -10,7 +10,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.studio249.qaapp_realwear.data.SeedDataRepository
 import com.studio249.qaapp_realwear.model.Step
@@ -75,6 +74,17 @@ fun ReinspectionScreen(
         }
 
         RealWearBottomBar {
+            RealWearButton(
+                label = if(currentStepIndex>0) "PREVIOUS STEP" else "PREVIOUS PAGE",
+                onClick = {
+                    if (currentStepIndex > 0) {
+                        currentStepIndex--
+                    } else {
+                        onBack()
+                    }
+                },
+                modifier = Modifier.weight(1f).fillMaxHeight()
+            )
             RealWearButton(
                 label = "DEFECTS NOT FIXED",
                 onClick = {

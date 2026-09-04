@@ -234,7 +234,7 @@ fun ToBeFixedScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 RealWearButton(
-                    label = "PREVIOUS STEP",
+                    label = if(currentStepIndex>0) "PREVIOUS STEP" else "PREVIOUS PAGE",
                     onClick = {
                         if (currentStepIndex > 0) {
                             currentStepIndex--
