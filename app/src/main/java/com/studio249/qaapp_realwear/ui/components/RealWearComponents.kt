@@ -126,7 +126,6 @@ fun RealWearTile(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-
     Column(
         modifier = modifier
             .padding(4.dp) 
@@ -154,10 +153,10 @@ fun RealWearTile(
         ) {
             icon()
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(10.dp))
         Text(
             text = label.uppercase(),
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.titleLarge,
             color = TextPrimary,
             textAlign = TextAlign.Center
         )

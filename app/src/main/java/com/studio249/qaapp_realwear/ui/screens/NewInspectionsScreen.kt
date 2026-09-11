@@ -20,9 +20,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -313,7 +316,7 @@ fun NewInspectionsScreen(
                                         .padding(8.dp)
                                 ) {
                                     Text(
-                                        "DETECT LIST",
+                                        "DEFECT CORRECTION LIST",
                                         style = MaterialTheme.typography.labelLarge,
                                         color = TextPrimary
                                     )
@@ -321,8 +324,8 @@ fun NewInspectionsScreen(
                                     LazyColumn {
                                         items(detectList) { item ->
                                             val isSelected = currentStep.selectedDetectItem == item
-                                            Text(
-                                                text = item,
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .clip(RoundedCornerShape(4.dp))
@@ -345,10 +348,24 @@ fun NewInspectionsScreen(
                                                             ) else s
                                                         }
                                                     }
-                                                    .padding(12.dp),
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                color = TextPrimary
-                                            )
+                                                    .padding(15.dp)
+                                            ) {
+                                                Checkbox(
+                                                    checked = isSelected,
+                                                    onCheckedChange = null,
+                                                    colors = CheckboxDefaults.colors(
+                                                        checkedColor = AccentGreen,
+                                                        uncheckedColor = TextSecondary,
+                                                        checkmarkColor = Color.White
+                                                    )
+                                                )
+                                                Text(
+                                                    text = item,
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    color = TextPrimary,
+                                                    modifier = Modifier.padding(start = 8.dp)
+                                                )
+                                            }
                                             HorizontalDivider(color = DividerColor)
                                         }
                                     }

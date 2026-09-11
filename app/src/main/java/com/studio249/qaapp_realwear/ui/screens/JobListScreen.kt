@@ -135,23 +135,24 @@ fun JobRow(job: Job, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(72.dp)
+            .height(120.dp)
             .clickable { onClick() }
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 24.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
             text = job.title,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = TextPrimary
         )
         Text(
             text = job.createdAt.format(formatter),
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.titleLarge,
             color = TextSecondary
         )
+
     }
 }
 

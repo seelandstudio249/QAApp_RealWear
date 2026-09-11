@@ -22,7 +22,7 @@ fun JobHubScreen(
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         RealWearTopBar(title = "JOB HUB")
-
+        val iconsize : Int = 100
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -36,13 +36,13 @@ fun JobHubScreen(
             ) {
                 RealWearTile(
                     label = "NEW INSPECTIONS",
-                    icon = { Icon(Icons.AutoMirrored.Filled.Assignment, contentDescription = null, modifier = Modifier.size(84.dp), tint = TextPrimary) },
+                    icon = { Icon(Icons.AutoMirrored.Filled.Assignment, contentDescription = null, modifier = Modifier.size(iconsize.dp), tint = TextPrimary) },
                     onClick = { onTabSelected("NewInspections") },
                     modifier = Modifier.weight(1f).fillMaxHeight()
                 )
                 RealWearTile(
                     label = "TO BE FIXED",
-                    icon = { Icon(Icons.Default.Build, contentDescription = null, modifier = Modifier.size(84.dp), tint = TextPrimary) },
+                    icon = { Icon(Icons.Default.Build, contentDescription = null, modifier = Modifier.size(iconsize.dp), tint = TextPrimary) },
                     onClick = { onTabSelected("ToBeFixed") },
                     modifier = Modifier.weight(1f).fillMaxHeight()
                 )
@@ -53,13 +53,13 @@ fun JobHubScreen(
             ) {
                 RealWearTile(
                     label = "REINSPECTION",
-                    icon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(84.dp), tint = TextPrimary) },
+                    icon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(iconsize.dp), tint = TextPrimary) },
                     onClick = { onTabSelected("Reinspection") },
                     modifier = Modifier.weight(1f).fillMaxHeight()
                 )
                 RealWearTile(
                     label = "COMPLETED",
-                    icon = { Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(84.dp), tint = TextPrimary) },
+                    icon = { Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(iconsize.dp), tint = TextPrimary) },
                     onClick = { onTabSelected("Completed") },
                     modifier = Modifier.weight(1f).fillMaxHeight()
                 )
