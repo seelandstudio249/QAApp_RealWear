@@ -86,7 +86,8 @@ fun JobListScreen(
             rightContent = {
                 RealWearButton(
                     label = "PREVIOUS PAGE",
-                    onClick = onBack
+                    onClick = onBack,
+                    modifier = Modifier.weight(.5f).fillMaxHeight()
                 )
             }
         )
@@ -135,7 +136,7 @@ fun JobRow(job: Job, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(120.dp)
+            .height(80.dp)
             .clickable { onClick() }
             .padding(horizontal = 24.dp),
         verticalAlignment = Alignment.CenterVertically,
