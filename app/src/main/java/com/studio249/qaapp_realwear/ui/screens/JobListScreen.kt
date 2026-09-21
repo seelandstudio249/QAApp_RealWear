@@ -13,9 +13,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.studio249.qaapp_realwear.data.SeedDataRepository
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.studio249.qaapp_realwear.model.Job
 import com.studio249.qaapp_realwear.ui.components.RealWearButton
 import com.studio249.qaapp_realwear.ui.components.RealWearTopBar
@@ -30,12 +32,14 @@ import java.time.format.DateTimeFormatter
 fun JobListScreen(
     type: String,
     onJobSelected: (String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    viewModel: JobListViewModel = hiltViewModel()
 ) {
-    val repository = remember { SeedDataRepository() }
-    var allJobs by remember { mutableStateOf<List<Job>>(emptyList()) }
+    val allJobs by viewModel.jobs.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+    
     var displayedJobs by remember { mutableStateOf<List<Job>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
     var isPaging by remember { mutableStateOf(false) }
     
     val pageSize = 5
@@ -49,17 +53,11 @@ fun JobListScreen(
     }
 
     LaunchedEffect(type) {
-        isLoading = true
-        val result = when (type) {
-            "NewInspections", "Outstanding" -> repository.getNewInspectionsList()
-            "ToBeFixed", "InProgress" -> repository.getToBeFixedList()
-            "Reinspection", "InVerify" -> repository.getReinspectionList()
-            "Completed" -> repository.getCompletedList()
-            else -> repository.getNewInspectionsList()
-        }
-        allJobs = result.getOrDefault(emptyList()).sortedByDescending { it.createdAt }
+        viewModel.fetchJobs(type)
+    }
+
+    LaunchedEffect(allJobs) {
         displayedJobs = allJobs.take(pageSize)
-        isLoading = false
     }
 
     val shouldLoadMore = remember {
@@ -97,8 +95,15 @@ fun JobListScreen(
                 .fillMaxWidth()
                 .weight(1f)
         ) {
-            if (isLoading) {
+            if (isLoading && displayedJobs.isEmpty()) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = AccentBlue)
+            } else if (error != null && displayedJobs.isEmpty()) {
+                Text(
+                    text = error ?: "Unknown error",
+                    modifier = Modifier.align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center
+                )
             } else {
                 LazyColumn(
                     state = listState,
@@ -143,13 +148,13 @@ fun JobRow(job: Job, onClick: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = job.title,
+            text = job.vehiclePlateNo.ifEmpty { job.title },
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = TextPrimary
         )
         Text(
-            text = job.createdAt.format(formatter),
+            text = (job.completedAt ?: job.createdAt).format(formatter),
             style = MaterialTheme.typography.titleLarge,
             color = TextSecondary
         )

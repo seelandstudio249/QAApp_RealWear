@@ -8,8 +8,15 @@ enum class JobStatus {
 
 data class Job(
     val id: String,
-    val title: String,
-    val createdAt: LocalDateTime,
+    val vehicleId: String = "",
+    val vehiclePlateNo: String = "",
+    val clientName: String = "",
+    val title: String = "", // Legacy title support
+    val createdAt: LocalDateTime = LocalDateTime.now(),
     val status: JobStatus,
+    val defectId: String? = null,
+    val defectType: String? = null,
+    val defectStatus: String? = null,
+    val completedAt: LocalDateTime? = null,
     val steps: List<Step> = emptyList()
 )

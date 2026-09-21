@@ -2,16 +2,20 @@ package com.studio249.qaapp_realwear.data
 
 import com.studio249.qaapp_realwear.model.Job
 import com.studio249.qaapp_realwear.model.Step
+import com.studio249.qaapp_realwear.model.User
 import kotlinx.coroutines.delay
 import java.io.File
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class SeedDataRepository : Repository {
+@Singleton
+class SeedDataRepository @Inject constructor() : Repository {
     private val simulateDelay: Long = 500
 
-    override suspend fun postLogin(loginString: String): Result<String> {
+    override suspend fun postLogin(loginString: String): Result<User> {
         delay(simulateDelay)
         return if (loginString == SeedData.FIXED_LOGIN_STRING) {
-            Result.success(SeedData.FAKE_TOKEN)
+            Result.success(SeedData.FAKE_USER)
         } else {
             Result.failure(Exception("Login Fail"))
         }

@@ -30,7 +30,9 @@ import com.studio249.qaapp_realwear.ui.screens.ReinspectionScreen
 import com.studio249.qaapp_realwear.ui.screens.TestCamScreen
 import com.studio249.qaapp_realwear.ui.screens.TestResultScreen
 import com.studio249.qaapp_realwear.ui.theme.QAApp_RealwearTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val requestPermissionLauncher = registerForActivityResult(

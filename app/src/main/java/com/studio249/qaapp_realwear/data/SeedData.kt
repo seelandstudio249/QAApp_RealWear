@@ -3,11 +3,20 @@ package com.studio249.qaapp_realwear.data
 import com.studio249.qaapp_realwear.model.Job
 import com.studio249.qaapp_realwear.model.JobStatus
 import com.studio249.qaapp_realwear.model.Step
+import com.studio249.qaapp_realwear.model.User
 import java.time.LocalDateTime
 
 object SeedData {
     const val FIXED_LOGIN_STRING = "QAApp"
     const val FAKE_TOKEN = "dummy_session_token_12345"
+
+    val FAKE_USER = User(
+        id = "11111111-1111-1111-1111-111111111111",
+        username = "45631278",
+        fullname = "Testing cert",
+        usergroups = listOf("Inspector"),
+        authToken = "RW-1fc83829-72af-47a7-a519-9ec1a95fe532"
+    )
 
     val detectList = listOf("Detect 1", "Detect 2", "Detect 3", "Detect 4")
 
@@ -20,7 +29,9 @@ object SeedData {
     val newInspectionsJobs = (1..12).map { i ->
         Job(
             id = "OUT-$i",
-            title = "New Inspection Task $i",
+            vehiclePlateNo = "SBA${1000 + i}A",
+            clientName = "ST Engineering",
+            title = "SBA${1000 + i}A",
             createdAt = LocalDateTime.now().minusDays(i.toLong()),
             status = JobStatus.NewInspections,
             steps = createSteps("OUT-$i")
@@ -30,7 +41,9 @@ object SeedData {
     val toBeFixedJobs = (1..12).map { i ->
         Job(
             id = "PROG-$i",
-            title = "To Be Fixed Task $i",
+            vehiclePlateNo = "SCD${2000 + i}B",
+            clientName = "PSA Singapore",
+            title = "SCD${2000 + i}B",
             createdAt = LocalDateTime.now().minusDays(i.toLong()),
             status = JobStatus.ToBeFixed,
             steps = createSteps("PROG-$i")
@@ -40,7 +53,9 @@ object SeedData {
     val reinspectionJobs = (1..12).map { i ->
         Job(
             id = "VER-$i",
-            title = "Reinspection Task $i",
+            vehiclePlateNo = "SFE${3000 + i}C",
+            clientName = "ComfortDelGro",
+            title = "SFE${3000 + i}C",
             createdAt = LocalDateTime.now().minusDays(i.toLong()),
             status = JobStatus.Reinspection,
             steps = createSteps("VER-$i")
@@ -50,7 +65,9 @@ object SeedData {
     val completedJobs = (1..12).map { i ->
         Job(
             id = "COMP-$i",
-            title = "Completed Task $i",
+            vehiclePlateNo = "SGH${4000 + i}D",
+            clientName = "SMRT",
+            title = "SGH${4000 + i}D",
             createdAt = LocalDateTime.now().minusDays(i.toLong()),
             status = JobStatus.Completed,
             steps = createSteps("COMP-$i")

@@ -2,10 +2,11 @@ package com.studio249.qaapp_realwear.data
 
 import com.studio249.qaapp_realwear.model.Job
 import com.studio249.qaapp_realwear.model.Step
+import com.studio249.qaapp_realwear.model.User
 import java.io.File
 
 interface Repository {
-    suspend fun postLogin(loginString: String): Result<String>
+    suspend fun postLogin(loginString: String): Result<User>
     suspend fun getNewInspectionsList(): Result<List<Job>>
     suspend fun getToBeFixedList(): Result<List<Job>>
     suspend fun getReinspectionList(): Result<List<Job>>

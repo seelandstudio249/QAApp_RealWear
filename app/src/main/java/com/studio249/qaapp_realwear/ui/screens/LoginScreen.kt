@@ -38,6 +38,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import com.studio249.qaapp_realwear.ui.components.CameraFrameComponent
@@ -50,15 +52,12 @@ import kotlinx.coroutines.delay
 import java.util.concurrent.Executors
 import kotlin.time.Duration.Companion.milliseconds
 
-enum class LoginState {
-    Scanning, LoggingIn, Complete, Failed
-}
-
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: () -> Unit,
+    viewModel: LoginViewModel = hiltViewModel()
 ) {
-    var loginState by remember { mutableStateOf(LoginState.Scanning) }
+    val loginState by viewModel.loginState.collectAsStateWithLifecycle()
     var dots by remember { mutableStateOf("") }
     
     val currentOnLoginSuccess by rememberUpdatedState(onLoginSuccess)
@@ -94,9 +93,7 @@ fun LoginScreen(
                 QrScannerView(
                     modifier = Modifier.fillMaxSize(),
                     onQrCodeScanned = { qrContent ->
-                        if (loginState == LoginState.Scanning) {
-                            loginState = LoginState.LoggingIn
-                        }
+                        viewModel.onLogin(qrContent)
                     }
                 )
 
@@ -140,7 +137,13 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     RealWearButton(
                         label = "SIMULATE SCAN",
-                        onClick = { loginState = LoginState.LoggingIn }
+                        onClick = { viewModel.onLogin("RW-1fc83829-72af-47a7-a519-9ec1a95fe532") }
+                    )
+                } else if (loginState == LoginState.Failed) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    RealWearButton(
+                        label = "LOGIN AGAIN",
+                        onClick = { viewModel.resetState() }
                     )
                 }
             }
@@ -148,10 +151,6 @@ fun LoginScreen(
 
         LaunchedEffect(loginState) {
             when (loginState) {
-                LoginState.LoggingIn -> {
-                    delay(1500.milliseconds)
-                    loginState = LoginState.Complete
-                }
                 LoginState.Complete -> {
                     delay(800.milliseconds)
                     currentOnLoginSuccess()
@@ -231,9 +230,14 @@ class QrCodeAnalyzer(
     private val onQrCodeScanned: (String) -> Unit
 ) : ImageAnalysis.Analyzer {
     private val scanner = BarcodeScanning.getClient()
+    private var isDetected = false
 
     @OptIn(ExperimentalGetImage::class)
     override fun analyze(imageProxy: ImageProxy) {
+        if (isDetected) {
+            imageProxy.close()
+            return
+        }
         val mediaImage = imageProxy.image
         if (mediaImage != null) {
             val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
@@ -241,7 +245,10 @@ class QrCodeAnalyzer(
                 .addOnSuccessListener { barcodes ->
                     for (barcode in barcodes) {
                         barcode.rawValue?.let { 
-                            onQrCodeScanned(it)
+                            if (!isDetected) {
+                                isDetected = true
+                                onQrCodeScanned(it)
+                            }
                         }
                     }
                 }
