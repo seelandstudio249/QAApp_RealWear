@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import coil.compose.AsyncImage
 import com.studio249.qaapp_realwear.data.SeedDataRepository
+import com.studio249.qaapp_realwear.model.Detection
 import com.studio249.qaapp_realwear.model.Step
 import com.studio249.qaapp_realwear.model.StepStatus
 import com.studio249.qaapp_realwear.ui.components.RealWearBottomBar
@@ -98,9 +99,18 @@ fun ProceduresScreen(
 
     LaunchedEffect(jobId) {
         val stepsResult = repository.getProcedures(jobId)
-        steps = stepsResult.getOrDefault(emptyList())
+        val rawSteps = stepsResult.getOrDefault(emptyList())
         val detectResult = repository.getDetectList()
         detectList = detectResult.getOrDefault(emptyList())
+
+        // Seed empty detections with "No Defects"
+        steps = rawSteps.map { step ->
+            if (step.detections.isEmpty()) {
+                step.copy(detections = listOf(Detection(label = "No Defects", originalLabel = "No Defects")))
+            } else {
+                step
+            }
+        }
         isLoading = false
     }
 
@@ -285,7 +295,7 @@ fun ProceduresScreen(
                                     Spacer(modifier = Modifier.height(8.dp))
                                     LazyColumn {
                                         items(detectList) { item ->
-                                            val isSelected = currentStep.selectedDetectItem == item
+                                            val isSelected = currentStep.detections.firstOrNull()?.label == item
                                             Text(
                                                 text = item,
                                                 modifier = Modifier
@@ -295,7 +305,9 @@ fun ProceduresScreen(
                                                     .then(if (isSelected) Modifier.border(width = 2.dp, color = AccentBlue, shape = RoundedCornerShape(4.dp)) else Modifier)
                                                     .clickable {
                                                         steps = steps.mapIndexed { i, s ->
-                                                            if (i == currentStepIndex) s.copy(selectedDetectItem = item) else s
+                                                            if (i == currentStepIndex) {
+                                                                s.copy(detections = listOf(Detection(label = item, originalLabel = item)))
+                                                            } else s
                                                         }
                                                     }
                                                     .padding(12.dp),

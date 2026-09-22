@@ -49,6 +49,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.studio249.qaapp_realwear.data.SeedDataRepository
+import com.studio249.qaapp_realwear.model.Detection
 import com.studio249.qaapp_realwear.model.Step
 import com.studio249.qaapp_realwear.model.StepStatus
 import com.studio249.qaapp_realwear.ui.components.CameraFrameComponent
@@ -89,6 +90,7 @@ fun NewInspectionsScreen(
     var currentPattern by remember { mutableStateOf(InspectionPattern.Steps) }
     var isLoading by remember { mutableStateOf(true) }
     var detectList by remember { mutableStateOf<List<String>>(emptyList()) }
+    var editingIndex by remember { mutableStateOf<Int?>(null) }
 
     var tempCapturedImage by remember { mutableStateOf<File?>(null) }
 
@@ -113,9 +115,18 @@ fun NewInspectionsScreen(
 
     LaunchedEffect(jobId) {
         val stepsResult = repository.getProcedures(jobId)
-        steps = stepsResult.getOrDefault(emptyList())
+        val rawSteps = stepsResult.getOrDefault(emptyList())
         val detectResult = repository.getDetectList()
         detectList = detectResult.getOrDefault(emptyList())
+
+        // Seed empty detections with "No Defects"
+        steps = rawSteps.map { step ->
+            if (step.detections.isEmpty()) {
+                step.copy(detections = listOf(Detection(label = "No Defects", originalLabel = "No Defects")))
+            } else {
+                step
+            }
+        }
         isLoading = false
     }
 
@@ -322,51 +333,99 @@ fun NewInspectionsScreen(
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     LazyColumn {
-                                        items(detectList) { item ->
-                                            val isSelected = currentStep.selectedDetectItem == item
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clip(RoundedCornerShape(4.dp))
-                                                    .background(
-                                                        if (isSelected) AccentBlue.copy(
-                                                            alpha = 0.15f
-                                                        ) else Color.Transparent
+                                        if (editingIndex == null) {
+                                            items(currentStep.detections.size) { index ->
+                                                val detection = currentStep.detections[index]
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .clip(RoundedCornerShape(4.dp))
+                                                        .clickable { editingIndex = index }
+                                                        .padding(15.dp)
+                                                ) {
+                                                    Text(
+                                                        text = "${index + 1}. ${detection.label}",
+                                                        style = MaterialTheme.typography.bodyLarge,
+                                                        color = TextPrimary
                                                     )
-                                                    .then(
-                                                        if (isSelected) Modifier.border(
-                                                            width = 2.dp,
-                                                            color = AccentBlue,
-                                                            shape = RoundedCornerShape(4.dp)
-                                                        ) else Modifier
+                                                    Spacer(modifier = Modifier.weight(1f))
+                                                    Text(
+                                                        text = "EDIT",
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        color = AccentBlue
                                                     )
-                                                    .clickable {
-                                                        steps = steps.mapIndexed { i, s ->
-                                                            if (i == currentStepIndex) s.copy(
-                                                                selectedDetectItem = item
-                                                            ) else s
-                                                        }
-                                                    }
-                                                    .padding(15.dp)
-                                            ) {
-                                                Checkbox(
-                                                    checked = isSelected,
-                                                    onCheckedChange = null,
-                                                    colors = CheckboxDefaults.colors(
-                                                        checkedColor = AccentGreen,
-                                                        uncheckedColor = TextSecondary,
-                                                        checkmarkColor = Color.White
-                                                    )
-                                                )
-                                                Text(
-                                                    text = item,
-                                                    style = MaterialTheme.typography.bodyLarge,
-                                                    color = TextPrimary,
-                                                    modifier = Modifier.padding(start = 8.dp)
-                                                )
+                                                }
+                                                HorizontalDivider(color = DividerColor)
                                             }
-                                            HorizontalDivider(color = DividerColor)
+                                        }
+                                    }
+
+                                    if (editingIndex != null) {
+                                        val index = editingIndex!!
+                                        val detection = currentStep.detections[index]
+                                        
+                                        // Pinned Header (Stays fixed at the top, does not scroll)
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .background(AccentBlue.copy(alpha = 0.1f))
+                                                .clickable { editingIndex = null }
+                                                .padding(15.dp)
+                                        ) {
+                                            Text(
+                                                text = "${index + 1}. ${detection.label}",
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                color = TextPrimary
+                                            )
+                                            Spacer(modifier = Modifier.weight(1f))
+                                            Text(
+                                                text = "CLOSE",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = AccentBlue
+                                            )
+                                        }
+                                        HorizontalDivider(color = AccentBlue, thickness = 2.dp)
+
+                                        // Master option list (This scrolls independently)
+                                        LazyColumn(modifier = Modifier.weight(1f)) {
+                                            items(detectList) { option ->
+                                                val isSelected = detection.label == option
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .clickable {
+                                                            steps = steps.mapIndexed { i, s ->
+                                                                if (i == currentStepIndex) {
+                                                                    val newDetections = s.detections.toMutableList()
+                                                                    newDetections[index] = detection.copy(label = option)
+                                                                    s.copy(detections = newDetections)
+                                                                } else s
+                                                            }
+                                                            editingIndex = null
+                                                        }
+                                                        .padding(15.dp)
+                                                ) {
+                                                    Checkbox(
+                                                        checked = isSelected,
+                                                        onCheckedChange = null,
+                                                        colors = CheckboxDefaults.colors(
+                                                            checkedColor = AccentGreen,
+                                                            uncheckedColor = TextSecondary,
+                                                            checkmarkColor = Color.White
+                                                        )
+                                                    )
+                                                    Text(
+                                                        text = option,
+                                                        style = MaterialTheme.typography.bodyLarge,
+                                                        color = TextPrimary,
+                                                        modifier = Modifier.padding(start = 8.dp)
+                                                    )
+                                                }
+                                                HorizontalDivider(color = DividerColor)
+                                            }
                                         }
                                     }
                                 }
