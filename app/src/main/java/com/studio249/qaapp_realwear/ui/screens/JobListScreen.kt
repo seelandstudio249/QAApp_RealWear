@@ -82,11 +82,17 @@ fun JobListScreen(
         RealWearTopBar(
             title = "JOB - $displayTitle",
             rightContent = {
-                RealWearButton(
-                    label = "PREVIOUS PAGE",
-                    onClick = onBack,
-                    modifier = Modifier.weight(.5f).fillMaxHeight()
-                )
+
+                    RealWearButton(
+                        label = "GetSeedData",
+                        onClick = { viewModel.loadSeedData(type) },
+                        modifier = Modifier.weight(.5f).fillMaxHeight()
+                    )
+                    RealWearButton(
+                        label = "PREVIOUS PAGE",
+                        onClick = onBack,
+                        modifier = Modifier.weight(.5f).fillMaxHeight()
+                    )
             }
         )
 

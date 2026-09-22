@@ -3,6 +3,7 @@ package com.studio249.qaapp_realwear.ui.screens
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.studio249.qaapp_realwear.data.Repository
+import com.studio249.qaapp_realwear.data.SeedData
 import com.studio249.qaapp_realwear.model.Job
 import com.studio249.qaapp_realwear.model.JobStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -57,5 +58,18 @@ class JobListViewModel @Inject constructor(
                 }
             )
         }
+    }
+
+    fun loadSeedData(type: String) {
+        val seedJobs = when (type) {
+            "NewInspections", "Outstanding" -> SeedData.newInspectionsJobs
+            "ToBeFixed", "InProgress" -> SeedData.toBeFixedJobs
+            "Reinspection", "InVerify" -> SeedData.reinspectionJobs
+            "Completed" -> SeedData.completedJobs
+            else -> SeedData.newInspectionsJobs
+        }
+        _jobs.value = seedJobs.sortedByDescending { it.createdAt }
+        _error.value = null
+        _isLoading.value = false
     }
 }

@@ -9,8 +9,10 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -135,10 +137,19 @@ fun LoginScreen(
 
                 if (loginState == LoginState.Scanning) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    RealWearButton(
-                        label = "SIMULATE SCAN",
-                        onClick = { viewModel.onLogin("RW-1fc83829-72af-47a7-a519-9ec1a95fe532") }
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RealWearButton(
+                            label = "SIMULATE SCAN",
+                            onClick = { viewModel.onLogin("RW-1fc83829-72af-47a7-a519-9ec1a95fe532") }
+                        )
+                        RealWearButton(
+                            label = "PassByLogin",
+                            onClick = { onLoginSuccess() }
+                        )
+                    }
                 } else if (loginState == LoginState.Failed) {
                     Spacer(modifier = Modifier.height(16.dp))
                     RealWearButton(
