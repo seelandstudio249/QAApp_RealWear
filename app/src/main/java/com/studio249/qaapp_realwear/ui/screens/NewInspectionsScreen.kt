@@ -327,7 +327,7 @@ fun NewInspectionsScreen(
                                         .padding(8.dp)
                                 ) {
                                     Text(
-                                        "DEFECT CORRECTION LIST",
+                                        "DEFECTS LIST",
                                         style = MaterialTheme.typography.labelLarge,
                                         color = TextPrimary
                                     )
@@ -350,9 +350,54 @@ fun NewInspectionsScreen(
                                                         color = TextPrimary
                                                     )
                                                     Spacer(modifier = Modifier.weight(1f))
+                                                    if (detection.originalLabel == "New Defect") {
+                                                        Text(
+                                                            text = "REMOVE",
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            color = Color.Red,
+                                                            modifier = Modifier
+                                                                .clickable {
+                                                                    steps = steps.mapIndexed { i, s ->
+                                                                        if (i == currentStepIndex) {
+                                                                            val newDetections = s.detections.toMutableList()
+                                                                            newDetections.removeAt(index)
+                                                                            s.copy(detections = newDetections)
+                                                                        } else s
+                                                                    }
+                                                                }
+                                                                .padding(end = 12.dp)
+                                                        )
+                                                    }
                                                     Text(
                                                         text = "EDIT",
                                                         style = MaterialTheme.typography.labelSmall,
+                                                        color = AccentBlue
+                                                    )
+                                                }
+                                                HorizontalDivider(color = DividerColor)
+                                            }
+
+                                            item {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .clip(RoundedCornerShape(4.dp))
+                                                        .clickable {
+                                                            steps = steps.mapIndexed { i, s ->
+                                                                if (i == currentStepIndex) {
+                                                                    val newDetections = s.detections.toMutableList()
+                                                                    newDetections.add(Detection(label = "New Defect", originalLabel = "New Defect"))
+                                                                    s.copy(detections = newDetections)
+                                                                } else s
+                                                            }
+                                                            editingIndex = currentStep.detections.size
+                                                        }
+                                                        .padding(15.dp)
+                                                ) {
+                                                    Text(
+                                                        text = "+ NEW DEFECT",
+                                                        style = MaterialTheme.typography.bodyLarge,
                                                         color = AccentBlue
                                                     )
                                                 }
