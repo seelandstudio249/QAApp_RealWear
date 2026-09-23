@@ -18,7 +18,7 @@ object SeedData {
         authToken = "RW-1fc83829-72af-47a7-a519-9ec1a95fe532"
     )
 
-    val detectList = listOf("Detect 1", "Detect 2", "Detect 3", "Detect 4")
+    val detectList = listOf("Defects 123", "Defects 234", "Defects 345", "Defects 456","Defects 567","Defects 678")
 
     private fun createSteps(jobId: String): List<Step> = listOf(
         Step(0, "Check Engine Oil", "https://example.com/step1.jpg"),

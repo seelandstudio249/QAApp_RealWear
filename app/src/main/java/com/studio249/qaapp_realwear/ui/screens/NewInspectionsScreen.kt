@@ -9,10 +9,12 @@ import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,8 +29,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -332,47 +338,60 @@ fun NewInspectionsScreen(
                                         color = TextPrimary
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
-                                    LazyColumn {
-                                        if (editingIndex == null) {
+                                    val rowHeight = 55.dp
+                                    val maxDefectsVisibleItems = 5
+                                    val maxMasterVisibleItems = 4
+                                    val defectsListHeight = rowHeight * minOf(currentStep.detections.size + 1, maxDefectsVisibleItems)
+                                    val masterListHeight = rowHeight * minOf(detectList.size, maxMasterVisibleItems)
+
+                                    if (editingIndex == null) {
+                                        LazyColumn(modifier = Modifier.height(defectsListHeight)) {
                                             items(currentStep.detections.size) { index ->
                                                 val detection = currentStep.detections[index]
                                                 Row(
                                                     verticalAlignment = Alignment.CenterVertically,
                                                     modifier = Modifier
                                                         .fillMaxWidth()
+                                                        .height(rowHeight)
                                                         .clip(RoundedCornerShape(4.dp))
                                                         .clickable { editingIndex = index }
-                                                        .padding(15.dp)
+                                                        .padding(horizontal = 15.dp)
                                                 ) {
                                                     Text(
                                                         text = "${index + 1}. ${detection.label}",
                                                         style = MaterialTheme.typography.bodyLarge,
-                                                        color = TextPrimary
+                                                        color = TextPrimary,
+                                                        modifier = Modifier.weight(0.8f)
                                                     )
-                                                    Spacer(modifier = Modifier.weight(1f))
-                                                    if (detection.originalLabel == "New Defect") {
-                                                        Text(
-                                                            text = "REMOVE",
-                                                            style = MaterialTheme.typography.labelSmall,
-                                                            color = Color.Red,
-                                                            modifier = Modifier
-                                                                .clickable {
-                                                                    steps = steps.mapIndexed { i, s ->
-                                                                        if (i == currentStepIndex) {
-                                                                            val newDetections = s.detections.toMutableList()
-                                                                            newDetections.removeAt(index)
-                                                                            s.copy(detections = newDetections)
-                                                                        } else s
+                                                    
+                                                    val isManual = detection.originalLabel == "New Defect"
+                                                    Column(
+                                                        modifier = Modifier.weight(0.2f),
+                                                        horizontalAlignment = Alignment.End,
+                                                        verticalArrangement = if (isManual) Arrangement.SpaceBetween else Arrangement.Center
+                                                    ) {
+                                                        if (isManual) {
+                                                            Icon(
+                                                                imageVector = Icons.Default.Close,
+                                                                contentDescription = "Remove Defect",
+                                                                tint = Color.White,
+                                                                modifier = Modifier
+                                                                    .size(20.dp)
+                                                                    .background(Color.Red, shape = CircleShape)
+                                                                    .clip(CircleShape)
+                                                                    .clickable {
+                                                                        steps = steps.mapIndexed { i, s ->
+                                                                            if (i == currentStepIndex) {
+                                                                                val newDetections = s.detections.toMutableList()
+                                                                                newDetections.removeAt(index)
+                                                                                s.copy(detections = newDetections)
+                                                                            } else s
+                                                                        }
                                                                     }
-                                                                }
-                                                                .padding(end = 12.dp)
-                                                        )
+                                                                    .padding(3.dp)
+                                                            )
+                                                        }
                                                     }
-                                                    Text(
-                                                        text = "EDIT",
-                                                        style = MaterialTheme.typography.labelSmall,
-                                                        color = AccentBlue
-                                                    )
                                                 }
                                                 HorizontalDivider(color = DividerColor)
                                             }
@@ -382,6 +401,7 @@ fun NewInspectionsScreen(
                                                     verticalAlignment = Alignment.CenterVertically,
                                                     modifier = Modifier
                                                         .fillMaxWidth()
+                                                        .height(rowHeight)
                                                         .clip(RoundedCornerShape(4.dp))
                                                         .clickable {
                                                             steps = steps.mapIndexed { i, s ->
@@ -393,7 +413,7 @@ fun NewInspectionsScreen(
                                                             }
                                                             editingIndex = currentStep.detections.size
                                                         }
-                                                        .padding(15.dp)
+                                                        .padding(horizontal = 15.dp)
                                                 ) {
                                                     Text(
                                                         text = "+ NEW DEFECT",
@@ -427,14 +447,14 @@ fun NewInspectionsScreen(
                                             Spacer(modifier = Modifier.weight(1f))
                                             Text(
                                                 text = "CLOSE",
-                                                style = MaterialTheme.typography.labelSmall,
+                                                style = MaterialTheme.typography.labelMedium,
                                                 color = AccentBlue
                                             )
                                         }
                                         HorizontalDivider(color = AccentBlue, thickness = 2.dp)
 
                                         // Master option list (This scrolls independently)
-                                        LazyColumn(modifier = Modifier.weight(1f)) {
+                                        LazyColumn(modifier = Modifier.height(masterListHeight)) {
                                             items(detectList) { option ->
                                                 val isSelected = detection.label == option
                                                 Row(
