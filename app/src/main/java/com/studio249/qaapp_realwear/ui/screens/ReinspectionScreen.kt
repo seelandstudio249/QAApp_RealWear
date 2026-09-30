@@ -3,13 +3,17 @@ package com.studio249.qaapp_realwear.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.studio249.qaapp_realwear.data.SeedDataRepository
 import com.studio249.qaapp_realwear.model.Step
@@ -83,7 +87,8 @@ fun ReinspectionScreen(
                         onBack()
                     }
                 },
-                modifier = Modifier.weight(1f).fillMaxHeight()
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                icon = { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(18.dp), tint = TextPrimary) }
             )
             RealWearButton(
                 label = "DEFECTS NOT FIXED",

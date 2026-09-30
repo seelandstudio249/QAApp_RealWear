@@ -34,6 +34,11 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.filled.Camera
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -59,6 +64,8 @@ import com.studio249.qaapp_realwear.model.Detection
 import com.studio249.qaapp_realwear.model.Step
 import com.studio249.qaapp_realwear.model.StepStatus
 import com.studio249.qaapp_realwear.ui.components.CameraFrameComponent
+import com.studio249.qaapp_realwear.ui.components.CameraPreview
+import com.studio249.qaapp_realwear.ui.components.IconPosition
 import com.studio249.qaapp_realwear.ui.components.RealWearBottomBar
 import com.studio249.qaapp_realwear.ui.components.RealWearButton
 import com.studio249.qaapp_realwear.ui.components.RealWearTopBar
@@ -68,6 +75,7 @@ import com.studio249.qaapp_realwear.ui.theme.BgPrimary
 import com.studio249.qaapp_realwear.ui.theme.BgSurface
 import com.studio249.qaapp_realwear.ui.theme.BgSurfaceRaised
 import com.studio249.qaapp_realwear.ui.theme.DividerColor
+import com.studio249.qaapp_realwear.ui.theme.ElectricCyan
 import com.studio249.qaapp_realwear.ui.theme.QAApp_RealwearTheme
 import com.studio249.qaapp_realwear.ui.theme.TextPrimary
 import com.studio249.qaapp_realwear.ui.theme.TextSecondary
@@ -146,7 +154,7 @@ fun NewInspectionsScreen(
     if (steps.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("No inspection steps found", color = TextPrimary)
-            RealWearButton(label = "BACK", onClick = onBack)
+            RealWearButton(label = "PREVIOUS PAGE", onClick = onBack)
         }
         return
     }
@@ -215,7 +223,8 @@ fun NewInspectionsScreen(
                     onClick = { currentPattern = InspectionPattern.Steps },
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxHeight()
+                        .fillMaxHeight(),
+                    icon = { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(18.dp), tint = TextPrimary) }
                 )
                 if (tempCapturedImage != null) {
                     RealWearButton(
@@ -245,6 +254,9 @@ fun NewInspectionsScreen(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
+                        , containerColor = ElectricCyan
+                        , contentColor = BgPrimary,
+                        icon = { Icon(Icons.Filled.CameraAlt, contentDescription = null, modifier = Modifier.size(48.dp), tint = BgPrimary) }
                     )
                 }
                 RealWearButton(
@@ -255,7 +267,8 @@ fun NewInspectionsScreen(
                     enabled = tempCapturedImage != null,
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxHeight()
+                        .fillMaxHeight(),
+                     containerColor = AccentGreen
                 )
             }
         } else {
@@ -516,7 +529,8 @@ fun NewInspectionsScreen(
                                 },
                                 modifier = Modifier
                                     .weight(1f)
-                                    .fillMaxHeight()
+                                    .fillMaxHeight(),
+                                icon = { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(18.dp), tint = TextPrimary) }
                             )
                             RealWearButton(
                                 label = "NEXT STEP",
@@ -532,7 +546,10 @@ fun NewInspectionsScreen(
                                 },
                                 modifier = Modifier
                                     .weight(1f)
-                                    .fillMaxHeight()
+                                    .fillMaxHeight(),
+                                containerColor = AccentBlue,
+                                icon = { Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp), tint = TextPrimary) },
+                                iconPosition = IconPosition.END
                             )
                         }
 
@@ -544,7 +561,8 @@ fun NewInspectionsScreen(
                                 },
                                 modifier = Modifier
                                     .weight(1f)
-                                    .fillMaxHeight()
+                                    .fillMaxHeight(),
+                                icon = { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(18.dp), tint = TextPrimary) }
                             )
                             val isLastStep = currentStepIndex == steps.size - 1
                             RealWearButton(
@@ -563,10 +581,14 @@ fun NewInspectionsScreen(
                                         tempCapturedImage = null
                                     }
                                 },
-                                containerColor = if (isLastStep) AccentGreen else BgSurfaceRaised,
+                                containerColor = if (isLastStep) AccentGreen else AccentBlue,
                                 modifier = Modifier
                                     .weight(1f)
-                                    .fillMaxHeight()
+                                    .fillMaxHeight(),
+                                icon = if (!isLastStep) {
+                                    { Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp), tint = TextPrimary) }
+                                } else null,
+                                iconPosition = IconPosition.END
                             )
                         }
 

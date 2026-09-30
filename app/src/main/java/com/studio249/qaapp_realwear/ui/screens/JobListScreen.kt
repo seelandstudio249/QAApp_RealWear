@@ -7,8 +7,11 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -91,7 +94,8 @@ fun JobListScreen(
                     RealWearButton(
                         label = "PREVIOUS PAGE",
                         onClick = onBack,
-                        modifier = Modifier.weight(.5f).fillMaxHeight()
+                        modifier = Modifier.weight(.5f).fillMaxHeight(),
+                        icon = { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(18.dp), tint = TextPrimary) }
                     )
             }
         )

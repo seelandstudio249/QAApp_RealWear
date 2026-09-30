@@ -26,6 +26,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.studio249.qaapp_realwear.ui.theme.*
 
+enum class IconPosition {
+    START,
+    END
+}
+
 @Composable
 fun RealWearButton(
     label: String,
@@ -33,6 +38,8 @@ fun RealWearButton(
     modifier: Modifier = Modifier,
     containerColor: Color = BgSurfaceRaised,
     contentColor: Color = TextPrimary,
+    icon: (@Composable () -> Unit)? = null,
+    iconPosition: IconPosition = IconPosition.START,
     enabled: Boolean = true
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -61,15 +68,30 @@ fun RealWearButton(
             .focusable(enabled = enabled, interactionSource = interactionSource),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = label.uppercase(),
-            style = MaterialTheme.typography.labelLarge,
-            color = finalContentColor,
-            modifier = Modifier.padding(horizontal = 8.dp),
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        ) {
+            if (icon != null && iconPosition == IconPosition.START) {
+                icon()
+                Spacer(modifier = Modifier.width(6.dp))
+            }
+
+            Text(
+                text = label.uppercase(),
+                style = MaterialTheme.typography.labelLarge,
+                color = finalContentColor,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            if (icon != null && iconPosition == IconPosition.END) {
+                Spacer(modifier = Modifier.width(6.dp))
+                icon()
+            }
+        }
     }
 }
 
@@ -177,7 +199,18 @@ fun ComponentsPreview() {
             
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 RealWearButton(label = "DEFAULT BUTTON", onClick = {})
-                RealWearButton(label = "GREEN BUTTON", onClick = {}, containerColor = AccentGreen)
+                RealWearButton(
+                    label = "ICON START",
+                    onClick = {},
+                    icon = { Icon(Icons.AutoMirrored.Filled.Assignment, contentDescription = null, modifier = Modifier.size(18.dp), tint = TextPrimary) }
+                )
+                RealWearButton(
+                    label = "ICON END",
+                    onClick = {},
+                    icon = { Icon(Icons.AutoMirrored.Filled.Assignment, contentDescription = null, modifier = Modifier.size(18.dp), tint = TextPrimary) },
+                    iconPosition = IconPosition.END,
+                    containerColor = AccentGreen
+                )
                 RealWearButton(label = "RED BUTTON", onClick = {}, containerColor = AccentRed)
             }
             

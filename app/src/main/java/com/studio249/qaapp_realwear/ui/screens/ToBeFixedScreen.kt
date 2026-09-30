@@ -10,8 +10,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +30,8 @@ import coil.compose.AsyncImage
 import com.studio249.qaapp_realwear.data.SeedDataRepository
 import com.studio249.qaapp_realwear.model.Step
 import com.studio249.qaapp_realwear.ui.components.CameraFrameComponent
+import com.studio249.qaapp_realwear.ui.components.CameraPreview
+import com.studio249.qaapp_realwear.ui.components.IconPosition
 import com.studio249.qaapp_realwear.ui.components.RealWearBottomBar
 import com.studio249.qaapp_realwear.ui.components.RealWearButton
 import com.studio249.qaapp_realwear.ui.components.RealWearTopBar
@@ -147,7 +154,8 @@ fun ToBeFixedScreen(
                 RealWearButton(
                     label = "PREVIOUS STEP",
                     onClick = { isCameraActive = false },
-                    modifier = Modifier.weight(1f).fillMaxHeight()
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    icon = { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(18.dp), tint = TextPrimary) }
                 )
                 if (currentCapturedImage != null) {
                     RealWearButton(
@@ -178,7 +186,11 @@ fun ToBeFixedScreen(
                                 }
                             )
                         },
-                        modifier = Modifier.weight(1f).fillMaxHeight()
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        containerColor = ElectricCyan,
+                        contentColor = BgPrimary,
+                        icon = { Icon(Icons.Filled.CameraAlt, contentDescription = null, modifier = Modifier.size(48.dp), tint = BgPrimary) }
+
                     )
                 }
                 RealWearButton(
@@ -193,7 +205,9 @@ fun ToBeFixedScreen(
                     },
                     enabled = currentCapturedImage != null,
                     containerColor = AccentGreen,
-                    modifier = Modifier.weight(1f).fillMaxHeight()
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    icon = { Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp), tint = TextPrimary) },
+                    iconPosition = IconPosition.END
                 )
             }
         }
@@ -242,12 +256,16 @@ fun ToBeFixedScreen(
                             onBack()
                         }
                     },
-                    modifier = Modifier.weight(1f).fillMaxHeight()
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    icon = { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(18.dp), tint = TextPrimary) }
                 )
                 RealWearButton(
                     label = "DEFECTS FIXED",
                     onClick = { isCameraActive = true },
-                    modifier = Modifier.weight(1f).fillMaxHeight()
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    icon = { Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp), tint = TextPrimary) },
+                    iconPosition = IconPosition.END
+
                 )
             }
         }
